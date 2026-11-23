@@ -38,7 +38,7 @@ struct SetDetailView: View {
         Group {
             switch model.selectedTab {
             case .overview: OverviewView(set: set)
-            case .files: PlaceholderTab(title: "Files", symbol: "doc.on.doc")
+            case .files: FilesView(set: set)
             case .duplicates: PlaceholderTab(title: "Duplicates", symbol: "square.on.square")
             case .review: PlaceholderTab(title: "Review", symbol: "trash.slash")
             case .history: PlaceholderTab(title: "History", symbol: "clock")

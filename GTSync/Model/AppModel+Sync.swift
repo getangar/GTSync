@@ -46,6 +46,8 @@ extension AppModel {
                 guard let self, !Task.isCancelled else { return }
                 session = SyncSession(setID: set.id, engine: engine, scan: scan)
                 lastScan = scan
+                lastPlan = plan
+                scanSetID = set.id
                 duplicateGroups = groups
                 pendingCounts[set.id] = plan.pendingDeletions.count
                 phase = .planReady(plan)
@@ -84,6 +86,31 @@ extension AppModel {
         default:
             session = nil
             phase = .idle
+        }
+    }
+
+    /// Rescans without opening the plan sheet (feeds the Files and Duplicates tabs).
+    func refreshScan() {
+        guard phase.isIdle, !isRefreshing, let set = selectedSet, set.roots.count >= 2 else { return }
+        let engine = makeEngine(set, allowedEmptyRoots[set.id] ?? [])
+        isRefreshing = true
+        Task { [weak self] in
+            do {
+                let scan = try await engine.scan()
+                let plan = try await engine.plan(scan)
+                let groups = await engine.duplicates(scan)
+                guard let self else { return }
+                lastScan = scan
+                lastPlan = plan
+                scanSetID = set.id
+                duplicateGroups = groups
+                pendingCounts[set.id] = plan.pendingDeletions.count
+                isRefreshing = false
+            } catch {
+                guard let self else { return }
+                lastError = (error as? SyncError).map { "\($0)" } ?? error.localizedDescription
+                isRefreshing = false
+            }
         }
     }
 

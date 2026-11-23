@@ -34,6 +34,9 @@ final class AppModel {
     var phase: SyncPhase = .idle
     var lastScan: ScanSnapshot?
     var duplicateGroups: [DuplicateGroup] = []
+    var lastPlan: SyncPlan?
+    var scanSetID: UUID?
+    var isRefreshing = false
     var allowedEmptyRoots: [UUID: Set<RootID>] = [:]
     @ObservationIgnored var session: SyncSession?
     @ObservationIgnored var syncTask: Task<Void, Never>?
