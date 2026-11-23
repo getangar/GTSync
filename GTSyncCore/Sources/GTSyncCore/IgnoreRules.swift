@@ -13,10 +13,10 @@ import Foundation
 public struct IgnoreRules: Sendable {
     public static let standard = IgnoreRules()
 
-    private static let builtInNames: Set<String> = [
+    public static let builtInNames: Set<String> = [
         ".DS_Store", ".Trash", ".Trashes", ".Spotlight-V100", ".fseventsd", ".TemporaryItems"
     ]
-    private static let builtInPrefixes = ["._", ".gtsync-"]
+    public static let builtInPrefixes = ["._", ".gtsync-"]
 
     private let names: Set<String>
 

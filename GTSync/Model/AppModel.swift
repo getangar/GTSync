@@ -54,7 +54,7 @@ final class AppModel {
         self.snapshotStore = snapshotStore
         self.historyStore = historyStore ?? HistoryStore(directory: snapshotStore.directory.appendingPathComponent("history", isDirectory: true))
         makeEngine = { set, allowEmpty in
-            SyncEngine(set: set, store: snapshotStore, allowEmptyRoots: allowEmpty)
+            SyncEngine(set: set, store: snapshotStore, ignore: IgnoreSettings.rules(), allowEmptyRoots: allowEmpty)
         }
         do {
             sets = try setStore.load()

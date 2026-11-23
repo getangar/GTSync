@@ -91,3 +91,12 @@ The engine separates planning from execution and hides file-system watching behi
 - Large-file copy strategy and progress granularity.
 - Handling of extended attributes, permissions, and timestamps when copying (suggested: preserve).
 - App icon, naming of UI sections, onboarding.
+
+## 8. Decisions made during implementation (2026-11-23)
+
+- **Duplicates:** "same name, different content" groups (a name plus its `-x` variants) and "same content" groups are separate; the main file is the largest size on disk (allocated size), ties: shortest path, oldest, alphabetical. All other members are the user's decision (rename, keep, Trash).
+- **Name collisions:** the first root of the set (the "Primary", reorderable) keeps the base name; other roots rename their existing file to a `-x` variant (a move, never an overwrite), then receive the primary's version.
+- **Safety:** an unmounted, unreadable or different-volume root aborts the sync; a root that is empty while the sync memory is not (ghost mount) aborts until the user confirms ("Continue Anyway"), which treats it as a new disk. Copies go through a hidden temp file, are verified by SHA-256, and are never moved over an existing name. Paths that escape a root (`..`, absolute, symlinked folders) are refused.
+- **Deletions:** only files are tracked; folder deletions are not (an emptied folder is recreated by the merge). Unresolved pending deletions are carried across every operation so they are never forgotten.
+- **Not verified at runtime:** the visual look against the mockups (no display was available while building), keyboard shortcuts, Quick Look interaction. Hardened Runtime and sandbox entitlements were verified with an ad-hoc signed release build; Developer ID signing and notarization are not done.
+- **Placeholders:** app icon (generated glyph on a blue-teal gradient; to be replaced via Icon Composer), tint (blue-teal), bundle id `com.gennarotangari.GTSync`.
