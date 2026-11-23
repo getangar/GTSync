@@ -156,6 +156,33 @@ import Testing
         #expect(box.events.map(\.completed) == [1, 2] && box.events.allSatisfy { $0.total == 2 })
     }
 
+    @Test func pathsThatEscapeTheRootAreRejected() async throws {
+        let env = try Env(a: ["x.txt": "hi"], b: ["inner/": ""])
+        defer { env.remove() }
+        let escape = env.b.url.deletingLastPathComponent().appendingPathComponent("gtsync-escape-\(UUID().uuidString).txt")
+        let report = try await run(env.executor(), [
+            .copy(from: env.ra.id, fromPath: "x.txt", to: env.rb.id, toPath: "../" + escape.lastPathComponent, reason: .add),
+            .copy(from: env.ra.id, fromPath: "x.txt", to: env.rb.id, toPath: "inner/../../" + escape.lastPathComponent, reason: .add),
+            .copy(from: env.ra.id, fromPath: "x.txt", to: env.rb.id, toPath: escape.path, reason: .add),
+            .rename(root: env.rb.id, from: "../anything", to: "ok.txt"),
+            .trash(root: env.rb.id, path: "../anything"),
+        ])
+        #expect(report.failures.count == 5 && report.completed == 0)
+        #expect(!FileManager.default.fileExists(atPath: escape.path))
+    }
+
+    @Test func symlinkedFolderCannotLeadOutsideTheRoot() async throws {
+        let outside = try TempTree.make()
+        let env = try Env(a: ["x.txt": "hi"])
+        defer { env.remove(); outside.remove() }
+        try FileManager.default.createSymbolicLink(at: env.b.path("link"), withDestinationURL: outside.url)
+        let report = try await run(env.executor(), [
+            .copy(from: env.ra.id, fromPath: "x.txt", to: env.rb.id, toPath: "link/x.txt", reason: .add)
+        ])
+        #expect(report.failures.count == 1)
+        #expect(!outside.exists("x.txt"))
+    }
+
     @Test func cancellationStopsBeforeTouchingAnything() async throws {
         let env = try Env(a: ["x.txt": "1"])
         defer { env.remove() }

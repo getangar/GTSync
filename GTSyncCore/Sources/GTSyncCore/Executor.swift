@@ -28,7 +28,7 @@ public struct ExecutionEvent: Sendable {
 }
 
 private enum ExecutorError: LocalizedError {
-    case destinationExists, notEnoughSpace, nameTooLong, verificationFailed, unknownRoot
+    case destinationExists, notEnoughSpace, nameTooLong, verificationFailed, unknownRoot, pathOutsideRoot
 
     var errorDescription: String? {
         switch self {
@@ -37,6 +37,7 @@ private enum ExecutorError: LocalizedError {
         case .nameTooLong: "The destination name is too long."
         case .verificationFailed: "The copy did not match the original and was discarded."
         case .unknownRoot: "Unknown folder."
+        case .pathOutsideRoot: "The path points outside the synced folder and was refused."
         }
     }
 }
@@ -144,9 +145,22 @@ public struct Executor: Sendable {
 
     // MARK: Helpers
 
+    /// Maps a root-relative path to a URL and refuses anything that could leave the root: absolute
+    /// paths, `.`/`..`/empty components, and parents that resolve (through symlinks) outside the root.
     private func resolve(_ root: RootID, _ path: RelativePath) throws -> URL {
         guard let found = roots[root] else { throw ExecutorError.unknownRoot }
-        return found.url.appendingPathComponent(path)
+        let components = path.split(separator: "/", omittingEmptySubsequences: false)
+        guard !path.isEmpty, !path.hasPrefix("/"),
+              !components.contains(where: { $0.isEmpty || $0 == "." || $0 == ".." }) else {
+            throw ExecutorError.pathOutsideRoot
+        }
+        let url = found.url.appendingPathComponent(path)
+        let rootPath = found.url.resolvingSymlinksInPath().standardizedFileURL.path
+        let parentPath = url.deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL.path
+        guard parentPath == rootPath || parentPath.hasPrefix(rootPath + "/") else {
+            throw ExecutorError.pathOutsideRoot
+        }
+        return url
     }
 
     private func checkName(_ url: URL) throws {
