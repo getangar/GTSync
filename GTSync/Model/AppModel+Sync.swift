@@ -68,6 +68,9 @@ extension AppModel {
                 let report = try await session.engine.execute(plan, scan: session.scan, progress: sink)
                 guard let self else { return }
                 allowedEmptyRoots[session.setID] = nil
+                let summary = plan.summary
+                record(HistoryEntry(date: .now, adds: summary.adds, variants: summary.variants, renames: summary.renames,
+                                    trashed: 0, failures: report.failures.count, cancelled: report.wasCancelled), for: session.setID)
                 phase = .finished(report)
             } catch {
                 self?.fail(error)

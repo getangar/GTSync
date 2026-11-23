@@ -45,11 +45,14 @@ final class AppModel {
 
     private let setStore: SetStore
     private let snapshotStore: SnapshotStore
+    private let historyStore: HistoryStore
+    private(set) var historyRevision = 0
     private let bookmarks = BookmarkStore()
 
-    init(setStore: SetStore, snapshotStore: SnapshotStore) {
+    init(setStore: SetStore, snapshotStore: SnapshotStore, historyStore: HistoryStore? = nil) {
         self.setStore = setStore
         self.snapshotStore = snapshotStore
+        self.historyStore = historyStore ?? HistoryStore(directory: snapshotStore.directory.appendingPathComponent("history", isDirectory: true))
         makeEngine = { set, allowEmpty in
             SyncEngine(set: set, store: snapshotStore, allowEmptyRoots: allowEmpty)
         }
@@ -90,6 +93,7 @@ final class AppModel {
         sets.removeAll { $0.id == id }
         pendingCounts[id] = nil
         try? FileManager.default.removeItem(at: snapshotFile(id))
+        historyStore.remove(setID: id)
         if selectedSetID == id { selectedSetID = sets.first?.id }
         persist()
     }
@@ -133,6 +137,18 @@ final class AppModel {
         if (pendingCounts[set.id] ?? 0) > 0 { return .needsReview }
         let snapshot = (try? snapshotStore.load(setID: set.id)) ?? .empty
         return snapshot.entries.isEmpty ? .neverSynced : .inSync
+    }
+
+    // MARK: History
+
+    func history(for setID: UUID) -> [HistoryEntry] {
+        _ = historyRevision
+        return (try? historyStore.load(setID: setID)) ?? []
+    }
+
+    func record(_ entry: HistoryEntry, for setID: UUID) {
+        try? historyStore.append(entry, setID: setID)
+        historyRevision += 1
     }
 
     // MARK: Helpers

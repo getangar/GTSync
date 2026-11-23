@@ -51,20 +51,41 @@ extension AppModel {
         return true
     }
 
-    /// Runs user-approved operations and rescans. Unresolved pending deletions are carried over so
-    /// they are not forgotten by the sync memory.
-    func performOperations(_ operations: [SyncOperation]) {
-        guard phase.isIdle, let set = selectedSet, let scan = lastScan, !operations.isEmpty else { return }
+    /// Runs user-approved operations and rescans.
+    func performOperations(_ operations: [SyncOperation], resolving resolved: [PendingDeletion] = []) {
+        guard let (set, scan) = actionContext, !operations.isEmpty else { return }
         let engine = makeEngine(set, allowedEmptyRoots[set.id] ?? [])
-        let pending = lastPlan?.pendingDeletions ?? []
         syncTask = Task { [weak self] in
-            do {
-                _ = try await engine.execute(SyncPlan(operations: operations, pendingDeletions: pending),
-                                             scan: scan, progress: { _ in })
-            } catch {
-                self?.lastError = error.localizedDescription
-            }
-            self?.refreshScan()
+            await self?.executeUserOperations(operations, engine: engine, setID: set.id, scan: scan, resolving: resolved)
         }
+    }
+
+    var actionContext: (SyncSet, ScanSnapshot)? {
+        guard phase.isIdle, let set = selectedSet, let scan = lastScan else { return nil }
+        return (set, scan)
+    }
+
+    /// Executes, records history, rescans. Unresolved pending deletions are carried over so the sync
+    /// memory does not forget them (otherwise a later sync would copy the files back).
+    func executeUserOperations(
+        _ operations: [SyncOperation], engine: any SyncRunning, setID: UUID, scan: ScanSnapshot,
+        resolving resolved: [PendingDeletion]
+    ) async {
+        let resolvedIDs = Set(resolved.map(\.id))
+        let remaining = (lastPlan?.pendingDeletions ?? []).filter { !resolvedIDs.contains($0.id) }
+        do {
+            let report = try await engine.execute(SyncPlan(operations: operations, pendingDeletions: remaining),
+                                                  scan: scan, progress: { _ in })
+            record(HistoryEntry(
+                date: .now,
+                adds: operations.filter { if case .copy = $0 { true } else { false } }.count,
+                variants: 0,
+                renames: operations.filter { if case .rename = $0 { true } else { false } }.count,
+                trashed: operations.filter { if case .trash = $0 { true } else { false } }.count,
+                failures: report.failures.count, cancelled: report.wasCancelled), for: setID)
+        } catch {
+            lastError = error.localizedDescription
+        }
+        refreshScan()
     }
 }

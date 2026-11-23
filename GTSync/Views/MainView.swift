@@ -40,8 +40,8 @@ struct SetDetailView: View {
             case .overview: OverviewView(set: set)
             case .files: FilesView(set: set)
             case .duplicates: DuplicatesView(set: set)
-            case .review: PlaceholderTab(title: "Review", symbol: "trash.slash")
-            case .history: PlaceholderTab(title: "History", symbol: "clock")
+            case .review: ReviewView(set: set)
+            case .history: HistoryView(setID: set.id)
             }
         }
         .navigationTitle(set.name)
@@ -108,14 +108,6 @@ struct SetDetailView: View {
         case .review: "Review"
         case .history: "History"
         }
-    }
-}
-
-private struct PlaceholderTab: View {
-    let title: LocalizedStringKey
-    let symbol: String
-    var body: some View {
-        ContentUnavailableView(title, systemImage: symbol, description: Text("Coming soon."))
     }
 }
 
