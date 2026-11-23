@@ -27,7 +27,7 @@ public struct ScanResult: Sendable {
 public enum Scanner {
     private static let keys: [URLResourceKey] = [
         .isDirectoryKey, .isSymbolicLinkKey, .isPackageKey,
-        .fileSizeKey, .totalFileAllocatedSizeKey, .contentModificationDateKey
+        .fileSizeKey, .totalFileAllocatedSizeKey, .contentModificationDateKey, .attributeModificationDateKey
     ]
 
     /// Lists every item under `root`. Packages and symlinks are single opaque items
@@ -79,9 +79,22 @@ public enum Scanner {
                 kind: kind,
                 size: Int64(values.fileSize ?? 0),
                 allocatedSize: Int64(values.totalFileAllocatedSize ?? 0),
-                modified: values.contentModificationDate ?? .distantPast
+                modified: values.contentModificationDate ?? .distantPast,
+                changed: values.attributeModificationDate ?? .distantPast
             ))
         }
+        issues += nameCollisions(in: items)
         return ScanResult(items: items, issues: issues)
+    }
+
+    /// Names in one folder that differ only by case or Unicode form. They can coexist on a
+    /// case-sensitive volume but are one name everywhere else, so they are reported (and the sync
+    /// leaves them alone) instead of silently keeping just one.
+    public static func nameCollisions(in items: [ScannedItem]) -> [ScanIssue] {
+        let groups = Dictionary(grouping: items, by: { NameKey.key(for: $0.relativePath) })
+        return groups.values.filter { $0.count > 1 }.flatMap { group in
+            group.map { ScanIssue(relativePath: $0.relativePath,
+                                  message: "Another name in this folder differs only by capital letters or accents.") }
+        }.sorted { $0.relativePath < $1.relativePath }
     }
 }

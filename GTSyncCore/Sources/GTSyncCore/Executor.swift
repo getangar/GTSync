@@ -101,11 +101,27 @@ public struct Executor: Sendable {
         return report
     }
 
-    /// Deletes `.gtsync-*.tmp` leftovers of an interrupted run.
+    /// Deletes leftovers of an interrupted run. Only names that match exactly what this executor
+    /// creates (`.gtsync-<UUID>.tmp`) are touched, and package contents are never entered.
     public static func removeStrayTemps(in root: URL) {
-        guard let walker = FileManager.default.enumerator(at: root, includingPropertiesForKeys: nil) else { return }
-        for case let url as URL in walker where url.lastPathComponent.hasPrefix(".gtsync-") && url.pathExtension == "tmp" {
+        guard let walker = FileManager.default.enumerator(at: root, includingPropertiesForKeys: nil,
+                                                          options: [.skipsPackageDescendants]) else { return }
+        for case let url as URL in walker where isOwnTempName(url.lastPathComponent) {
             try? FileManager.default.removeItem(at: url)
+        }
+    }
+
+    private static func isOwnTempName(_ name: String) -> Bool {
+        guard name.hasPrefix(".gtsync-"), name.hasSuffix(".tmp") else { return false }
+        let middle = name.dropFirst(".gtsync-".count).dropLast(".tmp".count)
+        return UUID(uuidString: String(middle)) != nil
+    }
+
+    /// Moves `from` to `to`, failing if `to` exists. One atomic step (`RENAME_EXCL`), no check-then-act window.
+    static func moveExclusively(from: URL, to: URL) throws {
+        guard renamex_np(from.path, to.path, 0x4) == 0 else {
+            let code = errno
+            throw code == EEXIST ? ExecutorError.destinationExists : NSError(domain: NSPOSIXErrorDomain, code: Int(code))
         }
     }
 
@@ -127,7 +143,7 @@ public struct Executor: Sendable {
             let source = try resolve(root, from), target = try resolve(root, to)
             try checkName(target)
             guard !exists(target) else { throw ExecutorError.destinationExists }
-            try fm.moveItem(at: source, to: target)
+            try Self.moveExclusively(from: source, to: target)
 
         case let .swap(root, first, second):
             let one = try resolve(root, first), two = try resolve(root, second)
@@ -163,7 +179,7 @@ public struct Executor: Sendable {
             if let modified = attributes[.modificationDate] as? Date {
                 try? fm.setAttributes([.modificationDate: modified], ofItemAtPath: temp.path)
             }
-            try fm.moveItem(at: temp, to: destination)   // fails if the name appeared meanwhile
+            try Self.moveExclusively(from: temp, to: destination)   // atomic: fails if the name appeared meanwhile
         } catch {
             try? fm.removeItem(at: temp)
             throw error

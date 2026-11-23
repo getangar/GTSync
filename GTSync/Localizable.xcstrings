@@ -14,12 +14,12 @@
         }
       }
     },
-    "%@ is empty, but it used to contain files. If its disk is not mounted, stop here. If you emptied it on purpose, or it is a new disk, you can continue.": {
+    "%@ is empty, but it used to contain files. If its disk is not mounted, stop here. If it is a new disk, you can continue: GT Sync will copy your files into it, and nothing is deleted.": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ è vuota, ma in passato conteneva dei file. Se il disco non è montato, fermati qui. Se l'hai svuotata di proposito, o se è un disco nuovo, puoi continuare."
+            "value": "%@ è vuota, ma in passato conteneva dei file. Se il disco non è montato, fermati qui. Se è un disco nuovo, puoi continuare: GT Sync ci copierà i tuoi file e non verrà cancellato nulla."
           }
         }
       }

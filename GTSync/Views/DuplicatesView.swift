@@ -57,7 +57,7 @@ struct DuplicatesView: View {
         .sheet(item: Binding(get: { removal.map(PendingRemoval.init) }, set: { if $0 == nil { removal = nil } })) { _ in
             if let request = removal {
                 RemovalSheet(request: request) {
-                    if let group = selectedGroup { model.removeMembers(removalMembers, in: group) }
+                    model.confirm(request)
                     removal = nil
                 } onCancel: { removal = nil }
             }

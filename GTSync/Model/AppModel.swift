@@ -48,12 +48,19 @@ final class AppModel {
     private let setStore: SetStore
     private let snapshotStore: SnapshotStore
     private let historyStore: HistoryStore
+    private let snapshotStatus: SnapshotStatusCache
     private(set) var historyRevision = 0
     private let bookmarks = BookmarkStore()
 
     init(setStore: SetStore, snapshotStore: SnapshotStore, historyStore: HistoryStore? = nil) {
         self.setStore = setStore
         self.snapshotStore = snapshotStore
+        self.snapshotStatus = SnapshotStatusCache(
+            stamp: { id in
+                let url = snapshotStore.directory.appendingPathComponent("\(id.uuidString).json")
+                return (try? FileManager.default.attributesOfItem(atPath: url.path))?[.modificationDate] as? Date
+            },
+            loadHasEntries: { id in !((try? snapshotStore.load(setID: id))?.entries.isEmpty ?? true) })
         self.historyStore = historyStore ?? HistoryStore(directory: snapshotStore.directory.appendingPathComponent("history", isDirectory: true))
         makeEngine = { set, allowEmpty in
             SyncEngine(set: set, store: snapshotStore, ignore: IgnoreSettings.rules(), allowEmptyRoots: allowEmpty)
@@ -134,15 +141,14 @@ final class AppModel {
     // MARK: Status
 
     func unavailableRoots(in set: SyncSet) -> [Root] {
-        let snapshot = (try? snapshotStore.load(setID: set.id)) ?? .empty
-        return set.roots.filter { RootGuard.check($0, snapshot: snapshot, currentItemCount: nil) != nil }
+        // Without a scan count the guard never looks at the snapshot, so don't read it here.
+        return set.roots.filter { RootGuard.check($0, snapshot: .empty, currentItemCount: nil) != nil }
     }
 
     func status(of set: SyncSet) -> SetStatus {
         if !unavailableRoots(in: set).isEmpty { return .rootUnavailable }
         if (pendingCounts[set.id] ?? 0) > 0 { return .needsReview }
-        let snapshot = (try? snapshotStore.load(setID: set.id)) ?? .empty
-        return snapshot.entries.isEmpty ? .neverSynced : .inSync
+        return snapshotStatus.hasEntries(set.id) ? .inSync : .neverSynced
     }
 
     // MARK: History

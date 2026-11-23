@@ -54,6 +54,7 @@ extension AppModel {
                 pendingCounts[set.id] = plan.pendingDeletions.count
                 phase = .planReady(plan)
             } catch {
+                guard !Task.isCancelled else { return }       // the user cancelled: stay quiet
                 self?.fail(error)
             }
         }
@@ -85,6 +86,7 @@ extension AppModel {
 
     /// Cancels whatever is in progress; a running sync stops between operations and reports what it did.
     func cancelSync() {
+        if let id = selectedSetID, !isRunning { allowedEmptyRoots[id] = nil }   // the override was for that one plan
         switch phase {
         case .running:
             syncTask?.cancel()                      // `confirmPlan`'s task finishes with the partial report
@@ -121,6 +123,8 @@ extension AppModel {
             }
         }
     }
+
+    private var isRunning: Bool { if case .running = phase { true } else { false } }
 
     func dismissSync() {
         let changedFolders: Bool

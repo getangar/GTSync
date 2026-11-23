@@ -37,6 +37,11 @@ extension AppModel {
         return RemovalRequest(operations: operations, lines: lines, needsExtraConfirmation: group.kind == .nameVariants)
     }
 
+    /// Runs exactly the operations the confirmation sheet listed, even if the lists changed meanwhile.
+    func confirm(_ request: RemovalRequest) {
+        performOperations(request.operations)
+    }
+
     /// Moves the chosen members to the Trash in every root that holds them, then rescans.
     func removeMembers(_ members: [DuplicateMember], in group: DuplicateGroup) {
         performOperations(group.removalOperations(of: members))

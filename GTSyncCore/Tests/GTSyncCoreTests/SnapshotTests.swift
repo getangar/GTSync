@@ -30,27 +30,49 @@ private final class HashCounter: @unchecked Sendable {
         #expect(try store.load(setID: id).entries == snapshot.entries)
     }
 
-    @Test func indexerReusesHashWhenSizeAndMtimeMatch() throws {
+    @Test func indexerReusesTheCachedHashWhenNothingChanged() throws {
         let tree = try TempTree.make(["a.txt": "hello", "d/": ""])
         defer { tree.remove() }
         let rootID = RootID()
-        let scan = try Scanner.scan(root: tree.url, ignore: .standard)
         let counter = HashCounter()
+        let scan = try Scanner.scan(root: tree.url, ignore: .standard)
 
-        let first = Indexer.index(root: tree.url, rootID: rootID, scan: scan, previous: .empty, hasher: counter.hash)
+        let first = Indexer.index(root: tree.url, rootID: rootID, scan: scan, cache: [:], hasher: counter.hash)
         #expect(counter.count == 1)
         let file = try #require(first.index.item(at: "a.txt"))
         #expect(file.hash == (try FileHasher.sha256(of: tree.path("a.txt"))))
         #expect(first.index.item(at: "d")?.hash == nil)
 
-        var previous = Snapshot.empty
-        previous.entries["a.txt"] = SnapshotEntry(hash: file.hash!, size: file.size, modified: file.modified)
-        _ = Indexer.index(root: tree.url, rootID: rootID, scan: scan, previous: previous, hasher: counter.hash)
-        #expect(counter.count == 1, "hash must be reused when size and mtime match")
+        _ = Indexer.index(root: tree.url, rootID: rootID, scan: scan, cache: first.cache, hasher: counter.hash)
+        #expect(counter.count == 1, "hash must be reused when size, mtime and change time match")
+    }
 
-        previous.entries["a.txt"] = SnapshotEntry(hash: file.hash!, size: file.size, modified: file.modified.addingTimeInterval(-10))
-        _ = Indexer.index(root: tree.url, rootID: rootID, scan: scan, previous: previous, hasher: counter.hash)
-        #expect(counter.count == 2, "hash must be recomputed when mtime changed")
+    @Test func indexerRehashesAnInPlaceEditThatKeepsSizeAndModificationDate() throws {
+        let tree = try TempTree.make(["a.txt": "AAAA"])
+        defer { tree.remove() }
+        let rootID = RootID()
+        let pinned = Date(timeIntervalSince1970: 1_600_000_000)
+        try FileManager.default.setAttributes([.modificationDate: pinned], ofItemAtPath: tree.path("a.txt").path)
+        let before = Indexer.index(root: tree.url, rootID: rootID, scan: try Scanner.scan(root: tree.url, ignore: .standard), cache: [:])
+
+        try Data("BBBB".utf8).write(to: tree.path("a.txt"))               // same size...
+        try FileManager.default.setAttributes([.modificationDate: pinned], ofItemAtPath: tree.path("a.txt").path)  // ...same mtime
+        let after = Indexer.index(root: tree.url, rootID: rootID, scan: try Scanner.scan(root: tree.url, ignore: .standard), cache: before.cache)
+
+        #expect(before.index.item(at: "a.txt")?.hash != after.index.item(at: "a.txt")?.hash)
+        #expect(after.index.item(at: "a.txt")?.hash == (try FileHasher.sha256(of: tree.path("a.txt"))))
+    }
+
+    @Test func hashCacheRoundTripsPerRoot() throws {
+        let tree = try TempTree.make()
+        defer { tree.remove() }
+        let store = SnapshotStore(directory: tree.path("snapshots"))
+        let setID = UUID(), one = RootID(), two = RootID()
+        let entry = HashCacheEntry(hash: "h", size: 3, modified: Date(timeIntervalSinceReferenceDate: 5), changed: Date(timeIntervalSinceReferenceDate: 6))
+        #expect(try store.loadHashCache(setID: setID, rootID: one).isEmpty)
+        try store.saveHashCache(["a.txt": entry], setID: setID, rootID: one)
+        #expect(try store.loadHashCache(setID: setID, rootID: one) == ["a.txt": entry])
+        #expect(try store.loadHashCache(setID: setID, rootID: two).isEmpty)
     }
 
     @Test func unreadableFileKeepsNilHashAndReportsIssue() throws {
@@ -58,7 +80,7 @@ private final class HashCounter: @unchecked Sendable {
         defer { tree.remove() }
         try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: tree.path("secret.txt").path)
         let scan = try Scanner.scan(root: tree.url, ignore: .standard)
-        let result = Indexer.index(root: tree.url, rootID: RootID(), scan: scan, previous: .empty)
+        let result = Indexer.index(root: tree.url, rootID: RootID(), scan: scan, cache: [:])
         #expect(result.index.item(at: "secret.txt")?.hash == nil)
         #expect(result.index.item(at: "ok.txt")?.hash != nil)
         #expect(result.issues.contains { $0.relativePath == "secret.txt" })

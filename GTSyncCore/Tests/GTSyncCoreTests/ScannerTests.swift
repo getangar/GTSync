@@ -63,6 +63,16 @@ import Testing
         #expect(result.issues.contains { $0.relativePath == "locked" })
     }
 
+    @Test func namesThatDifferOnlyByCaseOrNormalizationAreReportedAsCollisions() {
+        func item(_ path: String) -> ScannedItem {
+            ScannedItem(relativePath: path, kind: .file, size: 1, allocatedSize: 4096, modified: .now)
+        }
+        let issues = Scanner.nameCollisions(in: [item("d/Report.pdf"), item("d/report.pdf"), item("d/other.pdf"),
+                                                   item("caf\u{E9}.txt"), item("cafe\u{301}.txt")])
+        #expect(Set(issues.map(\.relativePath)) == ["d/Report.pdf", "d/report.pdf", "caf\u{E9}.txt", "cafe\u{301}.txt"])
+        #expect(Scanner.nameCollisions(in: [item("a.txt"), item("b.txt")]).isEmpty)
+    }
+
     @Test func unreadableOrMissingRootThrows() throws {
         let tree = try TempTree.make(["a.txt": "x"])
         defer { tree.remove() }

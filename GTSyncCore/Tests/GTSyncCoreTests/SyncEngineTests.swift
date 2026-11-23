@@ -169,6 +169,15 @@ import Testing
         #expect(env.b.exists("Private/x.txt"))
     }
 
+    @Test func snapshotNeverRecordsAPathThatOneRootHoldsUnderTwoSpellings() {
+        let a = RootID(), b = RootID()
+        func item(_ path: String) -> IndexedItem {
+            IndexedItem(relativePath: path, kind: .file, size: 1, allocatedSize: 4096, modified: .distantPast, hash: "h")
+        }
+        let indexes = [RootIndex(rootID: a, items: [item("Report.pdf"), item("report.pdf")]), RootIndex(rootID: b, items: [])]
+        #expect(SyncEngine.makeSnapshot(indexes: indexes, old: .empty, pending: []).entries.isEmpty)
+    }
+
     @Test func duplicatesAreReportedFromTheScan() async throws {
         let env = try Env(a: ["one.jpg": "same", "two.jpg": "same"])
         defer { env.remove() }

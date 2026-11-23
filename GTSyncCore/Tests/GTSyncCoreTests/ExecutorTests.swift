@@ -162,10 +162,31 @@ import Testing
     }
 
     @Test func strayTempFilesAreRemoved() throws {
-        let env = try Env(b: ["d/.gtsync-abc.tmp": "junk", "d/keep.txt": "k"])
+        let temp = ".gtsync-\(UUID().uuidString).tmp"
+        let env = try Env(b: ["d/\(temp)": "junk", "d/keep.txt": "k"])
         defer { env.remove() }
         Executor.removeStrayTemps(in: env.b.url)
-        #expect(!env.b.exists("d/.gtsync-abc.tmp") && env.b.exists("d/keep.txt"))
+        #expect(!env.b.exists("d/\(temp)") && env.b.exists("d/keep.txt"))
+    }
+
+    @Test func cleanupTouchesOnlyOurOwnTempPatternAndNeverEntersPackages() throws {
+        let ours = ".gtsync-\(UUID().uuidString).tmp"
+        let inPackage = ".gtsync-\(UUID().uuidString).tmp"
+        let env = try Env(b: ["d/\(ours)": "junk", "d/.gtsync-notes.tmp": "user file", "App.app/Contents/\(inPackage)": "inside a package"])
+        defer { env.remove() }
+        Executor.removeStrayTemps(in: env.b.url)
+        #expect(!env.b.exists("d/\(ours)"))
+        #expect(env.b.exists("d/.gtsync-notes.tmp"), "a file that only looks similar belongs to the user")
+        #expect(env.b.exists("App.app/Contents/\(inPackage)"), "package contents are never touched")
+    }
+
+    @Test func exclusiveMoveRefusesAnExistingTargetAtomically() throws {
+        let env = try Env(b: ["from.txt": "one", "taken.txt": "two"])
+        defer { env.remove() }
+        #expect(throws: (any Error).self) { try Executor.moveExclusively(from: env.b.path("from.txt"), to: env.b.path("taken.txt")) }
+        #expect(try env.b.read("from.txt") == "one" && env.b.read("taken.txt") == "two")
+        try Executor.moveExclusively(from: env.b.path("from.txt"), to: env.b.path("free.txt"))
+        #expect(try env.b.read("free.txt") == "one" && !env.b.exists("from.txt"))
     }
 
     @Test func progressReportsEveryOperation() async throws {

@@ -59,13 +59,17 @@ public struct ScannedItem: Hashable, Codable, Sendable {
     /// Size on disk (allocated size), used to pick the "main" duplicate.
     public let allocatedSize: Int64
     public let modified: Date
+    /// Last attribute change (ctime). It changes on every write, even if the modification date was pinned.
+    public let changed: Date
 
-    public init(relativePath: RelativePath, kind: ItemKind, size: Int64, allocatedSize: Int64, modified: Date) {
+    public init(relativePath: RelativePath, kind: ItemKind, size: Int64, allocatedSize: Int64, modified: Date,
+                changed: Date = .distantPast) {
         self.relativePath = relativePath
         self.kind = kind
         self.size = size
         self.allocatedSize = allocatedSize
         self.modified = modified
+        self.changed = changed
     }
 }
 

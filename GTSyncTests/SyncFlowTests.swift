@@ -18,11 +18,14 @@ actor FakeEngine: SyncRunning {
     var plan = SyncPlan(operations: [], pendingDeletions: [])
     var blockExecution = false
     var executeError: (any Error)?
+    var blockScan = false
+    private(set) var executedOperations: [SyncOperation] = []
     private(set) var executeCalls = 0
     private(set) var scanCalls = 0
 
     func configure(scanError: (any Error)? = nil, plan: SyncPlan = SyncPlan(), blockExecution: Bool = false,
-                   executeError: (any Error)? = nil) {
+                   executeError: (any Error)? = nil, blockScan: Bool = false) {
+        self.blockScan = blockScan
         self.scanError = scanError
         self.plan = plan
         self.blockExecution = blockExecution
@@ -31,6 +34,10 @@ actor FakeEngine: SyncRunning {
 
     func scan() async throws -> ScanSnapshot {
         scanCalls += 1
+        if blockScan {                          // a slow scan that fails only after it was cancelled
+            while !Task.isCancelled { try? await Task.sleep(for: .milliseconds(5)) }
+            throw SyncError.rootProblem(.missing(RootID()))
+        }
         if let scanError { throw scanError }
         return ScanSnapshot(indexes: [], issues: [])
     }
@@ -38,6 +45,7 @@ actor FakeEngine: SyncRunning {
     func duplicates(_ scan: ScanSnapshot) async -> [DuplicateGroup] { [] }
     func execute(_ plan: SyncPlan, scan: ScanSnapshot, progress: @Sendable @escaping (ExecutionEvent) -> Void) async throws -> ExecutionReport {
         executeCalls += 1
+        executedOperations += plan.operations
         if let executeError { throw executeError }
         if blockExecution {
             while !Task.isCancelled { try? await Task.sleep(for: .milliseconds(5)) }
@@ -197,6 +205,47 @@ actor FakeEngine: SyncRunning {
         await model.refreshTask?.value
         #expect(!model.isBusy)
         #expect(await engine.executeCalls == 1, "the second action was refused, not queued behind the first")
+    }
+
+    @Test func aCancelledScanNeverShowsAFailure() async throws {
+        let engine = FakeEngine()
+        await engine.configure(blockScan: true)
+        let (model, _, box) = try makeModel(engine: engine)
+        withExtendedLifetime(box) {}
+        model.startSync()
+        await waitUntil { if case .scanning = model.phase { true } else { false } }
+        model.cancelSync()
+        await model.syncTask?.value
+        #expect(model.phase.isIdle, "the user cancelled: a late error from the old scan must not pop up")
+    }
+
+    @Test func cancellingThePlanForgetsTheEmptyRootOverride() async throws {
+        let engine = FakeEngine()
+        let (model, id, box) = try makeModel(engine: engine)
+        withExtendedLifetime(box) {}
+        let emptyRoot = model.sets[0].roots[1].id
+        await engine.configure(scanError: SyncError.rootProblem(.suspiciouslyEmpty(emptyRoot)))
+        model.startSync(); await model.syncTask?.value
+        await engine.configure()
+        model.continueWithEmptyRoot(emptyRoot, in: id)
+        await model.syncTask?.value
+        #expect(model.allowedEmptyRoots[id] == [emptyRoot])
+        model.cancelSync()
+        #expect(model.allowedEmptyRoots[id] == nil, "the exception was for that one plan only")
+    }
+
+    @Test func confirmingARemovalRunsExactlyTheOperationsThatWereShown() async throws {
+        let engine = FakeEngine()
+        let (model, _, box) = try makeModel(engine: engine)
+        withExtendedLifetime(box) {}
+        model.lastScan = ScanSnapshot(indexes: [], issues: [])
+        let shown = RemovalRequest(operations: [.trash(root: RootID(), path: "shown.txt", expectedHash: "h")],
+                                   lines: ["One / shown.txt"], needsExtraConfirmation: false)
+        model.duplicateGroups = []                       // the list changed behind the open sheet
+        model.confirm(shown)
+        await model.syncTask?.value
+        await model.refreshTask?.value
+        #expect(await engine.executedOperations == shown.operations)
     }
 
     @Test func syncDoesNotStartWhileAnotherRunIsActive() async throws {

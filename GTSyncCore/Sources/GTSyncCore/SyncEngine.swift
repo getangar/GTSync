@@ -120,7 +120,9 @@ public actor SyncEngine {
                                              allowEmpty: allowEmptyRoots.contains(root.id)) {
                 throw SyncError.rootProblem(problem)
             }
-            let result = Indexer.index(root: root.url, rootID: root.id, scan: scan, previous: snapshot)
+            let cache = (try? store.loadHashCache(setID: set.id, rootID: root.id)) ?? [:]
+            let result = Indexer.index(root: root.url, rootID: root.id, scan: scan, cache: cache)
+            try? store.saveHashCache(result.cache, setID: set.id, rootID: root.id)
             indexes.append(result.index)
             issues += result.issues
         }
@@ -131,15 +133,17 @@ public actor SyncEngine {
     /// just some roots (a failed copy, a pending deletion) is not recorded, so it can never be
     /// mistaken for a deletion; unresolved pending deletions keep their previous entry.
     static func makeSnapshot(indexes: [RootIndex], old: Snapshot, pending: [PendingDeletion]) -> Snapshot {
-        var byKey: [String: [IndexedItem]] = [:]
+        var byKey: [String: [(root: RootID, item: IndexedItem)]] = [:]
         for index in indexes {
             for item in index.items where item.kind == .file && item.hash != nil {
-                byKey[NameKey.key(for: item.relativePath), default: []].append(item)
+                byKey[NameKey.key(for: item.relativePath), default: []].append((index.rootID, item))
             }
         }
         var entries: [RelativePath: SnapshotEntry] = [:]
-        for items in byKey.values where items.count == indexes.count && Set(items.compactMap(\.hash)).count == 1 {
-            let item = items[0]
+        for items in byKey.values where items.count == indexes.count
+            && Set(items.map(\.root)).count == indexes.count             // exactly one name per root
+            && Set(items.compactMap(\.item.hash)).count == 1 {
+            let item = items[0].item
             entries[item.relativePath] = SnapshotEntry(hash: item.hash!, size: item.size, modified: item.modified)
         }
         let oldByKey = Dictionary(old.entries.map { (NameKey.key(for: $0.key), ($0.key, $0.value)) }, uniquingKeysWith: { $1 })

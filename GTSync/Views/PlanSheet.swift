@@ -195,7 +195,7 @@ private struct FailureContent: View {
         case let .root(.notReadable(id)): return "\(name(id)) cannot be read. Check its permissions."
         case let .root(.volumeChanged(id)): return "\(name(id)) is now on a different disk than before."
         case let .root(.suspiciouslyEmpty(id)):
-            return "\(name(id)) is empty, but it used to contain files. If its disk is not mounted, stop here. If you emptied it on purpose, or it is a new disk, you can continue."
+            return "\(name(id)) is empty, but it used to contain files. If its disk is not mounted, stop here. If it is a new disk, you can continue: GT Sync will copy your files into it, and nothing is deleted."
         case let .other(text): return LocalizedStringKey(text)
         case let .afterRun(text): return "Something went wrong while syncing: \(text)"
         }
