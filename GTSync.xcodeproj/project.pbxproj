@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		00DA4DA8B2DDB1CDF06C004E /* GTSyncCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8B2E3D563E3390191B8569D2 /* GTSyncCore */; };
 		3F3E11E0421CA7E1C2935572 /* GTSyncCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7F1EE2B12D3A833C62921B38 /* GTSyncCore */; };
-		B98835789AB599A03CF9FDD8 /* BootTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F2C681B542612FB680D5D9 /* BootTests.swift */; };
-		FE4BBD65FACA90F8A2FBD864 /* GTSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5093F1E71F7D7B6CB0D7170 /* GTSyncApp.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,12 +23,43 @@
 
 /* Begin PBXFileReference section */
 		80338CB481A906472DCC0621 /* GTSyncTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GTSyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		82D6CDE5E90FCAEDE4487436 /* GTSync.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GTSync.entitlements; sourceTree = "<group>"; };
-		95F2C681B542612FB680D5D9 /* BootTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootTests.swift; sourceTree = "<group>"; };
-		C5093F1E71F7D7B6CB0D7170 /* GTSyncApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GTSyncApp.swift; sourceTree = "<group>"; };
 		E9A919D974654C72CF7DED78 /* GTSyncCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GTSyncCore; path = GTSyncCore; sourceTree = SOURCE_ROOT; };
 		F3658E3342B7AC16E9F9623A /* GTSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GTSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A646044F988BCD81A1F00100 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				GTSync.entitlements,
+			);
+			target = 79B6AF6B2B64988FC3814561 /* GTSync */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		79BBBCB107D51A1732DD3267 /* GTSyncTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = GTSyncTests;
+			sourceTree = "<group>";
+		};
+		BB4DDE79AD0CB2B8BD7B627F /* GTSync */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A646044F988BCD81A1F00100 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = GTSync;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		332FAD4E4D19C4FFFC3CC565 /* Frameworks */ = {
@@ -61,14 +90,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		33B9644052C5ED1C8C7CE2A7 /* GTSyncTests */ = {
-			isa = PBXGroup;
-			children = (
-				95F2C681B542612FB680D5D9 /* BootTests.swift */,
-			);
-			path = GTSyncTests;
-			sourceTree = "<group>";
-		};
 		80A819BCF8BA0D752EFAFB7E /* Packages */ = {
 			isa = PBXGroup;
 			children = (
@@ -77,20 +98,11 @@
 			name = Packages;
 			sourceTree = "<group>";
 		};
-		DCE339FA932D8A54D7F59FEC /* GTSync */ = {
-			isa = PBXGroup;
-			children = (
-				82D6CDE5E90FCAEDE4487436 /* GTSync.entitlements */,
-				C5093F1E71F7D7B6CB0D7170 /* GTSyncApp.swift */,
-			);
-			path = GTSync;
-			sourceTree = "<group>";
-		};
 		E80857BA463C87495073457D = {
 			isa = PBXGroup;
 			children = (
-				DCE339FA932D8A54D7F59FEC /* GTSync */,
-				33B9644052C5ED1C8C7CE2A7 /* GTSyncTests */,
+				BB4DDE79AD0CB2B8BD7B627F /* GTSync */,
+				79BBBCB107D51A1732DD3267 /* GTSyncTests */,
 				80A819BCF8BA0D752EFAFB7E /* Packages */,
 				1AF4BECE93F171BD8EE14E25 /* Products */,
 			);
@@ -104,12 +116,16 @@
 			buildConfigurationList = F35AC11C448E04DD7F08B33B /* Build configuration list for PBXNativeTarget "GTSyncTests" */;
 			buildPhases = (
 				27FE978F69F41AB17762C862 /* Sources */,
+				365815579A34CC1303231E34 /* Resources */,
 				332FAD4E4D19C4FFFC3CC565 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				21624C853F5A20E9C7102917 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				79BBBCB107D51A1732DD3267 /* GTSyncTests */,
 			);
 			name = GTSyncTests;
 			packageProductDependencies = (
@@ -124,11 +140,15 @@
 			buildConfigurationList = CF848EE4F3901371AC559A9E /* Build configuration list for PBXNativeTarget "GTSync" */;
 			buildPhases = (
 				6686717EA5979EC96A039B07 /* Sources */,
+				2055001453E6375796007AAD /* Resources */,
 				94B033E6F5B4C6AF871DCC43 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				BB4DDE79AD0CB2B8BD7B627F /* GTSync */,
 			);
 			name = GTSync;
 			packageProductDependencies = (
@@ -172,12 +192,28 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		2055001453E6375796007AAD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		365815579A34CC1303231E34 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		27FE978F69F41AB17762C862 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B98835789AB599A03CF9FDD8 /* BootTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -185,7 +221,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FE4BBD65FACA90F8A2FBD864 /* GTSyncApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -218,6 +253,7 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.gennarotangari.GTSync;
+				PRODUCT_MODULE_NAME = GTSync;
 				PRODUCT_NAME = "GT Sync";
 				SDKROOT = macosx;
 			};
@@ -297,6 +333,7 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.gennarotangari.GTSync;
+				PRODUCT_MODULE_NAME = GTSync;
 				PRODUCT_NAME = "GT Sync";
 				SDKROOT = macosx;
 			};
@@ -316,7 +353,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.gennarotangari.GTSyncTests;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GTSync.app/Contents/MacOS/GTSync";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GT Sync.app/Contents/MacOS/GT Sync";
 			};
 			name = Debug;
 		};
@@ -397,7 +434,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.gennarotangari.GTSyncTests;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GTSync.app/Contents/MacOS/GTSync";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GT Sync.app/Contents/MacOS/GT Sync";
 			};
 			name = Release;
 		};

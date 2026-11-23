@@ -49,4 +49,4 @@ A native macOS app that keeps one or more directories in sync. Directories may b
 - Core engine tests: `swift test --package-path GTSyncCore`
 - Build the app: `xcodebuild -project GTSync.xcodeproj -scheme GTSync -destination 'platform=macOS' build`
 - App tests: `xcodebuild test -project GTSync.xcodeproj -scheme GTSync -destination 'platform=macOS'`
-- The Xcode project was bootstrapped once with XcodeGen and is now maintained by hand/Xcode; there is no generator spec in the repo. Hardened Runtime only takes effect with real (non ad-hoc) signing.
+- The Xcode project was bootstrapped once with XcodeGen and is maintained by hand/Xcode (no generator spec in the repo). `GTSync/` and `GTSyncTests/` are synchronized folders: new files are picked up automatically. Module name is `GTSync` (product name "GT Sync"). Hardened Runtime only takes effect with real (non ad-hoc) signing.
