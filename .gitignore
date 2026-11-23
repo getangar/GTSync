@@ -1,0 +1,47 @@
+# (c)Copyright 2026 by Gennaro Eduardo Tangari.
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+Package.pins
+
+# CocoaPods / Carthage
+Pods/
+Carthage/Build/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Generated project (if XcodeGen/Tuist is adopted later, decide whether to track it)
+# *.xcodeproj
+
+# Claude Code (personal, not shared)
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Remember plugin state
+.remember/
