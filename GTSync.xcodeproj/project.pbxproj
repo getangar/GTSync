@@ -23,39 +23,18 @@
 
 /* Begin PBXFileReference section */
 		80338CB481A906472DCC0621 /* GTSyncTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GTSyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		E9A919D974654C72CF7DED78 /* GTSyncCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GTSyncCore; path = GTSyncCore; sourceTree = SOURCE_ROOT; };
-		F3658E3342B7AC16E9F9623A /* GTSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GTSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9A919D974654C72CF7DED78 /* GTSyncCore */ = {isa = PBXFileReference; lastKnownFileType = folder; path = GTSyncCore; sourceTree = SOURCE_ROOT; };
+		F3658E3342B7AC16E9F9623A /* GT Sync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GT Sync.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		A646044F988BCD81A1F00100 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				GTSync.entitlements,
-			);
-			target = 79B6AF6B2B64988FC3814561 /* GTSync */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		79BBBCB107D51A1732DD3267 /* GTSyncTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
 			path = GTSyncTests;
 			sourceTree = "<group>";
 		};
 		BB4DDE79AD0CB2B8BD7B627F /* GTSync */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				A646044F988BCD81A1F00100 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
 			path = GTSync;
 			sourceTree = "<group>";
 		};
@@ -84,7 +63,7 @@
 		1AF4BECE93F171BD8EE14E25 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F3658E3342B7AC16E9F9623A /* GTSync.app */,
+				F3658E3342B7AC16E9F9623A /* GT Sync.app */,
 				80338CB481A906472DCC0621 /* GTSyncTests.xctest */,
 			);
 			name = Products;
@@ -155,7 +134,7 @@
 				8B2E3D563E3390191B8569D2 /* GTSyncCore */,
 			);
 			productName = GTSync;
-			productReference = F3658E3342B7AC16E9F9623A /* GTSync.app */;
+			productReference = F3658E3342B7AC16E9F9623A /* GT Sync.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -166,8 +145,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 15ADEAD120E35E6B28E30F81 /* Build configuration list for PBXProject "GTSync" */;
 			developmentRegion = en;

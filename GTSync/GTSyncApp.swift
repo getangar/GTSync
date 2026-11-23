@@ -11,10 +11,13 @@ import SwiftUI
 
 @main
 struct GTSyncApp: App {
+    @State private var model = AppModel.live()
+
     var body: some Scene {
         WindowGroup {
-            Text("GT Sync")
-                .frame(minWidth: 480, minHeight: 320)
+            MainView()
+                .environment(model)
         }
+        .defaultSize(width: 1100, height: 700)
     }
 }

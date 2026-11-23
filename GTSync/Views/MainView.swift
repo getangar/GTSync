@@ -1,0 +1,94 @@
+//
+//  MainView.swift
+//  GT Sync
+//
+//  Created by Gennaro Eduardo Tangari on 2026-11-23.
+//  Last update: 2026-11-23
+//  Copyright © 2026 Gennaro Eduardo Tangari. All rights reserved.
+//
+
+import GTSyncCore
+import SwiftUI
+
+struct MainView: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        NavigationSplitView {
+            SidebarView()
+        } detail: {
+            if let set = model.selectedSet {
+                SetDetailView(set: set)
+            } else {
+                ContentUnavailableView("No sync set selected", systemImage: "arrow.left.arrow.right",
+                                       description: Text("Create a sync set from the sidebar to start merging folders."))
+            }
+        }
+        .frame(minWidth: 860, minHeight: 540)
+        .tint(Theme.accent)
+    }
+}
+
+struct SetDetailView: View {
+    let set: SyncSet
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        @Bindable var model = model
+        Group {
+            switch model.selectedTab {
+            case .overview: OverviewView(set: set)
+            case .files: PlaceholderTab(title: "Files", symbol: "doc.on.doc")
+            case .duplicates: PlaceholderTab(title: "Duplicates", symbol: "square.on.square")
+            case .review: PlaceholderTab(title: "Review", symbol: "trash.slash")
+            case .history: PlaceholderTab(title: "History", symbol: "clock")
+            }
+        }
+        .navigationTitle(set.name)
+        .navigationSubtitle(subtitle)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker("Section", selection: $model.selectedTab) {
+                    ForEach(SetTab.allCases) { Text(title($0)).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(minWidth: 380)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button("Sync…", systemImage: "arrow.triangle.2.circlepath") {}
+                    .buttonStyle(.glassProminent)
+                    .disabled(!canSync)
+                    .help(canSync ? "Scan the folders and preview what will happen" : "Sync is not available right now")
+            }
+        }
+        .searchable(text: $model.searchText, placement: .toolbar, prompt: "Search files")
+    }
+
+    private var canSync: Bool {
+        self.set.roots.count >= 2 && model.unavailableRoots(in: self.set).isEmpty
+    }
+
+    private var subtitle: String {
+        let count = set.roots.count
+        return count == 1 ? "1 folder" : "\(count) folders"
+    }
+
+    private func title(_ tab: SetTab) -> LocalizedStringKey {
+        switch tab {
+        case .overview: "Overview"
+        case .files: "Files"
+        case .duplicates: "Duplicates"
+        case .review: "Review"
+        case .history: "History"
+        }
+    }
+}
+
+private struct PlaceholderTab: View {
+    let title: LocalizedStringKey
+    let symbol: String
+    var body: some View {
+        ContentUnavailableView(title, systemImage: symbol, description: Text("Coming soon."))
+    }
+}
