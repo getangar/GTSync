@@ -23,7 +23,6 @@ xcuserdata/
 # Swift Package Manager
 .build/
 .swiftpm/
-Packages/
 Package.pins
 
 # CocoaPods / Carthage

@@ -43,3 +43,10 @@ A native macOS app that keeps one or more directories in sync. Directories may b
 - The "main" file of a duplicate group is always the one with the **largest size**.
 - The app may *recommend* removing duplicates; once the user confirms, they are removed from every folder that holds them. Removal is never automatic.
 - Selecting any file (source or destination) must show a preview so the user can judge easily.
+
+## Commands
+
+- Core engine tests: `swift test --package-path GTSyncCore`
+- Build the app: `xcodebuild -project GTSync.xcodeproj -scheme GTSync -destination 'platform=macOS' build`
+- App tests: `xcodebuild test -project GTSync.xcodeproj -scheme GTSync -destination 'platform=macOS'`
+- The Xcode project was bootstrapped once with XcodeGen and is now maintained by hand/Xcode; there is no generator spec in the repo. Hardened Runtime only takes effect with real (non ad-hoc) signing.
