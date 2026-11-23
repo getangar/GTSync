@@ -9,7 +9,7 @@
 
 import Foundation
 
-private enum P {
+enum PathUtil {
     static func dir(_ p: String) -> String {
         guard let i = p.lastIndex(of: "/") else { return "" }
         return String(p[..<i])
@@ -26,11 +26,16 @@ private enum P {
 /// The first root keeps the base name when different contents collide on a name.
 public enum Planner {
     public static func plan(roots: [RootIndex], snapshot: Snapshot) -> SyncPlan {
-        var builder = PlanBuilder(roots: roots)
+        var resolver = SnapshotResolver(roots: roots, snapshot: snapshot)
+        resolver.resolve()
+        var builder = PlanBuilder(roots: resolver.roots)
         builder.planDirectories()
         builder.planOpaqueItems()
         builder.planFiles()
-        return builder.finish()
+        var plan = builder.finish()
+        plan.operations = resolver.operations + plan.operations
+        plan.pendingDeletions = resolver.pendingDeletions
+        return plan
     }
 }
 
@@ -86,7 +91,7 @@ private struct PlanBuilder {
                 kinds[key, default: []].insert(item.kind)
                 if item.kind == .directory {
                     dirActual[r][key] = item.relativePath
-                    if firstDirName[key] == nil { firstDirName[key] = P.name(item.relativePath) }
+                    if firstDirName[key] == nil { firstDirName[key] = PathUtil.name(item.relativePath) }
                 }
             }
         }
@@ -99,7 +104,7 @@ private struct PlanBuilder {
         if path.isEmpty { return "" }
         let key = NameKey.key(for: path)
         if let cached = canonCache[key] { return cached }
-        let result = P.join(canonicalDir(P.dir(path)), firstDirName[key] ?? P.name(path))
+        let result = PathUtil.join(canonicalDir(PathUtil.dir(path)), firstDirName[key] ?? PathUtil.name(path))
         canonCache[key] = result
         return result
     }
@@ -107,14 +112,14 @@ private struct PlanBuilder {
     private func resolveDir(_ root: Int, _ canonical: String) -> String {
         if canonical.isEmpty { return "" }
         if let actual = dirActual[root][NameKey.key(for: canonical)] { return actual }
-        return P.join(resolveDir(root, P.dir(canonical)), P.name(canonical))
+        return PathUtil.join(resolveDir(root, PathUtil.dir(canonical)), PathUtil.name(canonical))
     }
 
     private func underConflict(_ path: String) -> Bool {
         var current = path
         while !current.isEmpty {
             if conflicts.contains(NameKey.key(for: current)) { return true }
-            current = P.dir(current)
+            current = PathUtil.dir(current)
         }
         return false
     }
@@ -123,11 +128,11 @@ private struct PlanBuilder {
 
     mutating func planDirectories() {
         let keys = Set(dirActual.flatMap { $0.keys })
-            .sorted { (P.depth($0), $0) < (P.depth($1), $1) }
+            .sorted { (PathUtil.depth($0), $0) < (PathUtil.depth($1), $1) }
         for key in keys where !conflicts.contains(key) {
             guard let owner = roots.indices.first(where: { dirActual[$0][key] != nil }) else { continue }
             let canonical = canonicalDir(dirActual[owner][key]!)
-            if underConflict(P.dir(canonical)) { continue }
+            if underConflict(PathUtil.dir(canonical)) { continue }
             for r in roots.indices where dirActual[r][key] == nil {
                 dirOps.append(.createDirectory(root: roots[r].rootID, path: resolveDir(r, canonical)))
             }
@@ -138,11 +143,11 @@ private struct PlanBuilder {
         let keys = Set(items.flatMap { $0.filter { $0.value.kind == .package || $0.value.kind == .symlink }.keys }).sorted()
         for key in keys where !conflicts.contains(key) {
             guard let owner = roots.indices.first(where: { items[$0][key] != nil }), let item = items[owner][key] else { continue }
-            let canonicalParent = canonicalDir(P.dir(item.relativePath))
+            let canonicalParent = canonicalDir(PathUtil.dir(item.relativePath))
             if underConflict(canonicalParent) { continue }
             for r in roots.indices where items[r][key] == nil {
                 copiesFirst.append(.copy(from: roots[owner].rootID, fromPath: item.relativePath, to: roots[r].rootID,
-                                         toPath: P.join(resolveDir(r, canonicalParent), P.name(item.relativePath)), reason: .add))
+                                         toPath: PathUtil.join(resolveDir(r, canonicalParent), PathUtil.name(item.relativePath)), reason: .add))
             }
         }
     }
@@ -151,7 +156,7 @@ private struct PlanBuilder {
 
     private func isVariantOfExisting(_ name: String, in dir: String, _ fileKeys: Set<String>) -> Bool {
         guard let parsed = SuffixNaming.parseVariant(name) else { return false }
-        return fileKeys.contains(NameKey.key(for: P.join(dir, parsed.base)))
+        return fileKeys.contains(NameKey.key(for: PathUtil.join(dir, parsed.base)))
     }
 
     mutating func planFiles() {
@@ -162,15 +167,15 @@ private struct PlanBuilder {
         for r in roots.indices {
             let files = items[r].values.filter { $0.kind == .file }.sorted { $0.relativePath < $1.relativePath }
             for item in files {
-                let dir = P.dir(item.relativePath), name = P.name(item.relativePath)
+                let dir = PathUtil.dir(item.relativePath), name = PathUtil.name(item.relativePath)
                 var rootName = name, idx = 0
                 if let parsed = SuffixNaming.parseVariant(name),
-                   fileKeys.contains(NameKey.key(for: P.join(dir, parsed.base))),
+                   fileKeys.contains(NameKey.key(for: PathUtil.join(dir, parsed.base))),
                    !isVariantOfExisting(parsed.base, in: dir, fileKeys) {
                     rootName = parsed.base
                     idx = parsed.index
                 }
-                let familyKey = NameKey.key(for: P.join(dir, rootName))
+                let familyKey = NameKey.key(for: PathUtil.join(dir, rootName))
                 var family = families[familyKey] ?? Family(baseName: rootName, dirCanonical: canonicalDir(dir))
                 if idx == 0 && !family.hasBase { family.baseName = name; family.hasBase = true }
                 family.members.append(Member(idx: idx, root: r, item: item))
@@ -226,7 +231,7 @@ private struct PlanBuilder {
                 }
                 assigned[m.root, default: [:]][target] = h
                 familyMoves.append(Move(root: m.root, from: m.item.relativePath,
-                                        to: P.join(resolveDir(m.root, family.dirCanonical), nameFor(target))))
+                                        to: PathUtil.join(resolveDir(m.root, family.dirCanonical), nameFor(target))))
                 movedMembers[m.root, default: [:]][m.item.relativePath] = familyMoves.last!.to
             }
         }
@@ -242,7 +247,7 @@ private struct PlanBuilder {
                 if staying[r]?[idx] == hash || assigned[r]?[idx] == hash { continue }
                 let source = family.members.first { $0.item.hash == hash && $0.root != r }
                     ?? family.members.first { $0.item.hash == hash }!
-                let destPath = P.join(resolveDir(r, family.dirCanonical), nameFor(idx))
+                let destPath = PathUtil.join(resolveDir(r, family.dirCanonical), nameFor(idx))
                 let destKey = NameKey.key(for: destPath)
                 if let existing = items[r][destKey], existing.kind != .file { return }   // a folder is in the way
                 if items[r][destKey] != nil {
@@ -277,7 +282,7 @@ private struct PlanBuilder {
                 } else {
                     // Rename cycle: park the first file under a temporary name.
                     let m = pending.removeFirst()
-                    let tmp = P.join(P.dir(m.from), "\(SyncPlan.swapPrefix)\(r)-\(tmpCounter)")
+                    let tmp = PathUtil.join(PathUtil.dir(m.from), "\(SyncPlan.swapPrefix)\(r)-\(tmpCounter)")
                     tmpCounter += 1
                     ops.append(.rename(root: roots[r].rootID, from: m.from, to: tmp))
                     pending.append((from: tmp, to: m.to))
