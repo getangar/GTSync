@@ -39,9 +39,9 @@ A native macOS app that keeps one or more directories in sync. Directories may b
 
 ## Duplicates area
 
-- A dedicated view lists every file and every possible duplicate.
-- The "main" file of a duplicate group is always the one with the **largest size**.
-- The app may *recommend* removing duplicates; once the user confirms, they are removed from every folder that holds them. Removal is never automatic.
+- A dedicated view lists every file and every possible duplicate, in two sections: same content (identical hash) and same name with different content (a name plus its `-x` variants; these are *different* files, and the user decides what to do: usually rename, or keep, or remove).
+- The "main" file of a group is always the one with the **largest size on disk** (allocated size). All other members are duplicates; what happens to them is always the user's decision.
+- The app may *recommend* removing or renaming; once the user confirms, it is applied in every folder that holds the file (removals go to the Trash). Never automatic.
 - Selecting any file (source or destination) must show a preview so the user can judge easily.
 
 ## Commands
