@@ -9,12 +9,12 @@
 
 import Foundation
 
-public enum CopyReason: Sendable, Equatable {
+public enum CopyReason: Sendable, Hashable {
     case add
     case variant
 }
 
-public enum SyncOperation: Sendable, Equatable {
+public enum SyncOperation: Sendable, Hashable {
     case createDirectory(root: RootID, path: RelativePath)
     case copy(from: RootID, fromPath: RelativePath, to: RootID, toPath: RelativePath, reason: CopyReason)
     case rename(root: RootID, from: RelativePath, to: RelativePath)

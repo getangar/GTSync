@@ -154,11 +154,6 @@ private struct PlanBuilder {
 
     // MARK: Files
 
-    private func isVariantOfExisting(_ name: String, in dir: String, _ fileKeys: Set<String>) -> Bool {
-        guard let parsed = SuffixNaming.parseVariant(name) else { return false }
-        return fileKeys.contains(NameKey.key(for: PathUtil.join(dir, parsed.base)))
-    }
-
     mutating func planFiles() {
         var fileKeys = Set<String>()
         for r in items.indices { for (k, it) in items[r] where it.kind == .file { fileKeys.insert(k) } }
@@ -168,13 +163,7 @@ private struct PlanBuilder {
             let files = items[r].values.filter { $0.kind == .file }.sorted { $0.relativePath < $1.relativePath }
             for item in files {
                 let dir = PathUtil.dir(item.relativePath), name = PathUtil.name(item.relativePath)
-                var rootName = name, idx = 0
-                if let parsed = SuffixNaming.parseVariant(name),
-                   fileKeys.contains(NameKey.key(for: PathUtil.join(dir, parsed.base))),
-                   !isVariantOfExisting(parsed.base, in: dir, fileKeys) {
-                    rootName = parsed.base
-                    idx = parsed.index
-                }
+                let (rootName, idx) = FamilyClassifier.classify(name: name, dir: dir, fileKeys: fileKeys)
                 let familyKey = NameKey.key(for: PathUtil.join(dir, rootName))
                 var family = families[familyKey] ?? Family(baseName: rootName, dirCanonical: canonicalDir(dir))
                 if idx == 0 && !family.hasBase { family.baseName = name; family.hasBase = true }
