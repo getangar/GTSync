@@ -30,7 +30,7 @@ final class AppModel {
     var pendingCounts: [UUID: Int] = [:]
     var lastError: String?
 
-    // Sync flow (see AppModel+Sync.swift)
+    // Sync flow (see SyncActions.swift)
     var phase: SyncPhase = .idle
     var lastScan: ScanSnapshot?
     var duplicateGroups: [DuplicateGroup] = []
