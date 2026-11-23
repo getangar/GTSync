@@ -104,6 +104,12 @@ public enum DuplicateIndex {
         return groups.sorted { $0.id < $1.id }
     }
 
+    /// Space freed by removing every redundant location of the exact-content groups. Different files
+    /// that merely share a name are not copies of each other, so they never count.
+    public static func reclaimableBytes(in groups: [DuplicateGroup]) -> Int64 {
+        groups.filter { $0.kind == .exactContent }.reduce(0) { $0 + $1.redundant.reduce(0) { $0 + $1.allocatedSize } }
+    }
+
     private static func makeGroup(id: String, kind: DuplicateKind, members: [DuplicateMember]) -> DuplicateGroup {
         let main = members.min(by: isBetter)!
         let mainKey = NameKey.key(for: main.relativePath)
