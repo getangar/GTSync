@@ -37,6 +37,8 @@ final class AppModel {
     var lastPlan: SyncPlan?
     var scanSetID: UUID?
     var isRefreshing = false
+    /// A user-approved action (restore, trash, rename) is running.
+    var isPerforming = false
     var allowedEmptyRoots: [UUID: Set<RootID>] = [:]
     @ObservationIgnored var session: SyncSession?
     @ObservationIgnored var syncTask: Task<Void, Never>?
@@ -72,6 +74,10 @@ final class AppModel {
     }
 
     var selectedSet: SyncSet? { sets.first { $0.id == selectedSetID } }
+
+    /// True while anything that touches the folders (or rescans them) is in progress. Every entry
+    /// point checks it, and the buttons are disabled meanwhile.
+    var isBusy: Bool { !phase.isIdle || isRefreshing || isPerforming }
 
     // MARK: Sets
 

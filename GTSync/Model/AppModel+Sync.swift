@@ -13,6 +13,8 @@ import GTSyncCore
 enum SyncFailure: Equatable {
     case root(RootProblem)
     case other(String)
+    /// The sync had already started changing things when this happened.
+    case afterRun(String)
 }
 
 enum SyncPhase {
@@ -35,7 +37,7 @@ struct SyncSession {
 extension AppModel {
     /// Scans and shows the plan. Nothing is changed until `confirmPlan()`.
     func startSync() {
-        guard phase.isIdle, let set = selectedSet else { return }
+        guard !isBusy, let set = selectedSet else { return }
         let engine = makeEngine(set, allowedEmptyRoots[set.id] ?? [])
         phase = .scanning
         syncTask = Task { [weak self] in
@@ -71,9 +73,12 @@ extension AppModel {
                 let summary = plan.summary
                 record(HistoryEntry(date: .now, adds: summary.adds, variants: summary.variants, renames: summary.renames,
                                     trashed: 0, failures: report.failures.count, cancelled: report.wasCancelled), for: session.setID)
+                invalidateScan()                      // the folders just changed: the old lists are stale
                 phase = .finished(report)
             } catch {
-                self?.fail(error)
+                guard let self else { return }
+                invalidateScan()
+                phase = .failed(.afterRun(error.localizedDescription))
             }
         }
     }
@@ -94,7 +99,7 @@ extension AppModel {
 
     /// Rescans without opening the plan sheet (feeds the Files and Duplicates tabs).
     func refreshScan() {
-        guard phase.isIdle, !isRefreshing, let set = selectedSet, set.roots.count >= 2 else { return }
+        guard !isBusy, let set = selectedSet, set.roots.count >= 2 else { return }
         let engine = makeEngine(set, allowedEmptyRoots[set.id] ?? [])
         isRefreshing = true
         refreshTask = Task { [weak self] in
@@ -118,8 +123,22 @@ extension AppModel {
     }
 
     func dismissSync() {
+        let changedFolders: Bool
+        switch phase {
+        case .finished, .failed(.afterRun): changedFolders = true
+        default: changedFolders = false
+        }
         session = nil
         phase = .idle
+        if changedFolders { refreshScan() }       // Files, Duplicates and Review show the new state
+    }
+
+    /// Forgets the last scan (it no longer describes the folders).
+    func invalidateScan() {
+        lastScan = nil
+        lastPlan = nil
+        scanSetID = nil
+        duplicateGroups = []
     }
 
     /// The user confirmed that an empty folder is intentional (a new disk): scan again with it allowed.

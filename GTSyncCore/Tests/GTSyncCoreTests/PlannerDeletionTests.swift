@@ -80,6 +80,29 @@ import Testing
         #expect(p.isEmpty)
     }
 
+    @Test func namesOfPendingDeletionsAreNeverReusedByTheMerge() throws {
+        let roots: [[IndexedItem]] = [
+            [file("report.pdf", "h0x")],                                   // A: report.pdf edited, report-1.pdf deleted
+            [file("report.pdf", "h0"), file("report-1.pdf", "h1")],        // B: still has both
+        ]
+        let p = plan(roots, ["report.pdf": "h0", "report-1.pdf": "h1"])
+        #expect(p.pendingDeletions.map(\.path) == ["report-1.pdf"])
+        var sim = SimFS(ids: [a, b], roots: roots)
+        try sim.apply(p)          // throws if any operation touches the name that is still in use
+        #expect(Set(sim.roots[1].values.compactMap(\.hash)).isSuperset(of: ["h0", "h0x", "h1"]))
+    }
+
+    @Test func everythingUnderAnUnreadableFolderIsLeftAloneEverywhere() {
+        let roots: [RootIndex] = [
+            RootIndex(rootID: a, items: [folder("Private")]),                                 // unreadable in A
+            RootIndex(rootID: b, items: [folder("Private"), file("Private/x.txt", "h1")]),
+        ]
+        let snap = snapshot(["Private/x.txt": "h1"])
+        #expect(Planner.plan(roots: roots, snapshot: snap).pendingDeletions.count == 1, "baseline: looks deleted")
+        let skipped = Planner.plan(roots: roots, snapshot: snap, skipping: ["Private"])
+        #expect(skipped.isEmpty)
+    }
+
     @Test func rootThatStillHasTheFileUnchangedAndOthersAlsoUnchangedIsQuiet() {
         let p = plan([[file("a.txt", "h1")], [file("a.txt", "h1")]], ["a.txt": "h1"])
         #expect(p.isEmpty)

@@ -45,7 +45,7 @@ public struct ExecutionEvent: Sendable {
 }
 
 private enum ExecutorError: LocalizedError {
-    case destinationExists, notEnoughSpace, nameTooLong, verificationFailed, unknownRoot, pathOutsideRoot
+    case destinationExists, notEnoughSpace, nameTooLong, verificationFailed, unknownRoot, pathOutsideRoot, contentChanged
 
     var errorDescription: String? {
         switch self {
@@ -55,6 +55,7 @@ private enum ExecutorError: LocalizedError {
         case .verificationFailed: "The copy did not match the original and was discarded."
         case .unknownRoot: "Unknown folder."
         case .pathOutsideRoot: "The path points outside the synced folder and was refused."
+        case .contentChanged: "The file is no longer the one that was scanned, so nothing was removed."
         }
     }
 }
@@ -128,8 +129,17 @@ public struct Executor: Sendable {
             guard !exists(target) else { throw ExecutorError.destinationExists }
             try fm.moveItem(at: source, to: target)
 
-        case let .trash(root, path):
-            try fm.trashItem(at: resolve(root, path), resultingItemURL: nil)
+        case let .swap(root, first, second):
+            let one = try resolve(root, first), two = try resolve(root, second)
+            // RENAME_SWAP (0x2): atomic exchange, both names must exist; nothing is ever left half-done.
+            guard renamex_np(one.path, two.path, 0x2) == 0 else {
+                throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+            }
+
+        case let .trash(root, path, expectedHash):
+            let url = try resolve(root, path)
+            if let expectedHash, (try? FileHasher.sha256(of: url)) != expectedHash { throw ExecutorError.contentChanged }
+            try fm.trashItem(at: url, resultingItemURL: nil)
         }
     }
 
@@ -190,7 +200,8 @@ public struct Executor: Sendable {
 
     private static func path(of operation: SyncOperation) -> RelativePath {
         switch operation {
-        case let .createDirectory(_, path), let .trash(_, path): path
+        case let .createDirectory(_, path), let .trash(_, path, _): path
+        case let .swap(_, _, second): second
         case let .copy(_, _, _, toPath, _): toPath
         case let .rename(_, _, to): to
         }

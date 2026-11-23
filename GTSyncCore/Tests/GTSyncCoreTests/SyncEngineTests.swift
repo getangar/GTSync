@@ -103,7 +103,7 @@ import Testing
         #expect(env.b.exists(name) && !env.a.exists(name), "nothing is copied back or removed until the user decides")
 
         let ops = await env.engine.resolve(pending, as: .propagate)
-        #expect(ops == [.trash(root: env.idB, path: name)])
+        #expect(ops == [.trash(root: env.idB, path: name, expectedHash: pending.hash)])
         let report = try await env.engine.execute(SyncPlan(operations: ops), scan: scan, progress: { _ in })
         #expect(report.failures.isEmpty && !env.b.exists(name))
         #expect(try await env.freshPlan().isEmpty)
@@ -156,6 +156,17 @@ import Testing
         #expect(report.failures.isEmpty)
         #expect(env.listing(env.b).keys.sorted() == ["new.txt"])
         #expect(try await env.freshPlan().isEmpty)
+    }
+
+    @Test func unreadableFolderIsNotReadAsDeletedFiles() async throws {
+        let env = try Env(a: ["Private/x.txt": "x", "keep.txt": "k"])
+        defer { env.remove() }
+        _ = try await env.sync()
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: env.a.path("Private").path)
+        let plan = try await env.freshPlan()
+        #expect(plan.pendingDeletions.isEmpty, "A can't be read there; that is not a deletion")
+        #expect(plan.operations.isEmpty)
+        #expect(env.b.exists("Private/x.txt"))
     }
 
     @Test func duplicatesAreReportedFromTheScan() async throws {

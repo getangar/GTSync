@@ -27,6 +27,7 @@ import GTSyncCore
         model.startSync(); await model.syncTask?.value
         model.confirmPlan(); await model.syncTask?.value
         model.dismissSync()
+        await model.refreshTask?.value          // finishing a sync rescans by itself
         for name in names { try FileManager.default.removeItem(at: one.appendingPathComponent(name)) }
         model.refreshScan(); await model.refreshTask?.value
         return (model, id, one, two, box)

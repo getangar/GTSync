@@ -40,7 +40,7 @@ public struct DuplicateGroup: Identifiable, Sendable {
         var operations: [SyncOperation] = []
         for member in chosen {
             for location in locations(of: member) where seen.insert("\(location.rootID.rawValue)|\(location.relativePath)").inserted {
-                operations.append(.trash(root: location.rootID, path: location.relativePath))
+                operations.append(.trash(root: location.rootID, path: location.relativePath, expectedHash: location.hash))
             }
         }
         return operations

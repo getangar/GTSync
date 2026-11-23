@@ -15,6 +15,7 @@ struct ReviewView: View {
     let set: SyncSet
     @Environment(AppModel.self) private var model
     @State private var confirmTrashAll = false
+    @State private var trashing: PendingDeletion?
 
     private var pending: [PendingDeletion] {
         model.scanSetID == set.id ? (model.lastPlan?.pendingDeletions ?? []) : []
@@ -47,6 +48,16 @@ struct ReviewView: View {
             }
         }
         .task(id: set.id) { if model.scanSetID != set.id { model.refreshScan() } }
+        .disabled(model.isBusy)
+        .confirmationDialog(
+            "Move “\((trashing?.path as NSString?)?.lastPathComponent ?? "")” to the Trash?",
+            isPresented: Binding(get: { trashing != nil }, set: { if !$0 { trashing = nil } }),
+            presenting: trashing
+        ) { item in
+            Button("Move to Trash", role: .destructive) { model.resolve(item, as: .propagate) }
+        } message: { item in
+            Text("It is removed from \(names(item.presentIn).formatted()). You can restore it from the Trash.")
+        }
         .confirmationDialog("Move \(pending.count) files to the Trash?", isPresented: $confirmTrashAll) {
             Button("Move All to Trash", role: .destructive) { model.resolveAll(as: .propagate) }
         } message: {
@@ -71,7 +82,7 @@ struct ReviewView: View {
             Spacer()
             Button("Restore", systemImage: "arrow.uturn.backward") { model.resolve(item, as: .restore) }
                 .buttonStyle(.glass)
-            Button("Move to Trash", systemImage: "trash", role: .destructive) { model.resolve(item, as: .propagate) }
+            Button("Move to Trash", systemImage: "trash", role: .destructive) { trashing = item }
                 .buttonStyle(.glass)
         }
         .padding(12)

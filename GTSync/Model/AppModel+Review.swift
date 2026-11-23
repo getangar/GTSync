@@ -23,6 +23,7 @@ extension AppModel {
     private func resolve(_ pendings: [PendingDeletion], as resolution: DeletionResolution) {
         guard let (set, scan) = actionContext, !pendings.isEmpty else { return }
         let engine = makeEngine(set, allowedEmptyRoots[set.id] ?? [])
+        isPerforming = true
         syncTask = Task { [weak self] in
             var operations: [SyncOperation] = []
             for pending in pendings { operations += await engine.resolve(pending, as: resolution) }

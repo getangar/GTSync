@@ -113,10 +113,12 @@ import GTSyncCore
         model.confirmPlan()
         await model.syncTask?.value
         model.dismissSync()
+        await model.refreshTask?.value          // finishing a sync rescans by itself
         let extra = "keepme-\(UUID().uuidString.prefix(6)).txt"
         let one = box.base.appendingPathComponent("one"), two = box.base.appendingPathComponent("two")
         try Data("x".utf8).write(to: one.appendingPathComponent(extra))
         model.startSync(); await model.syncTask?.value; model.confirmPlan(); await model.syncTask?.value; model.dismissSync()
+        await model.refreshTask?.value
         try FileManager.default.removeItem(at: one.appendingPathComponent(extra))
         await scanned(model)
         #expect(model.pendingCounts[id] == 1)

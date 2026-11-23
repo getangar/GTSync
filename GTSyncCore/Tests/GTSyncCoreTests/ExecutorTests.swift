@@ -106,6 +106,30 @@ import Testing
         #expect(!env.b.exists(name))
     }
 
+    @Test func swapExchangesTwoFilesAtomicallyAndLeavesNothingBehind() async throws {
+        let env = try Env(b: ["x.pdf": "ONE", "x-1.pdf": "TWO"])
+        defer { env.remove() }
+        let report = try await run(env.executor(), [.swap(root: env.rb.id, a: "x.pdf", b: "x-1.pdf")])
+        #expect(report.completed == 1 && report.failures.isEmpty)
+        #expect(try env.b.read("x.pdf") == "TWO" && env.b.read("x-1.pdf") == "ONE")
+        #expect(strayTemps(env.b).isEmpty)
+        let missing = try await run(env.executor(), [.swap(root: env.rb.id, a: "x.pdf", b: "nope.pdf")])
+        #expect(missing.failures.count == 1)
+        #expect(try env.b.read("x.pdf") == "TWO")
+    }
+
+    @Test func trashWithAnExpectedHashRefusesWhenTheFileChanged() async throws {
+        let name = "gtsync-hash-\(UUID().uuidString).txt"
+        let env = try Env(b: [name: "current content"])
+        defer { env.remove() }
+        let stale = try await run(env.executor(), [.trash(root: env.rb.id, path: name, expectedHash: "0000")])
+        #expect(stale.failures.count == 1 && stale.completed == 0)
+        #expect(env.b.exists(name), "a file that is not the one the user saw must not be removed")
+        let hash = try FileHasher.sha256(of: env.b.path(name))
+        let fresh = try await run(env.executor(), [.trash(root: env.rb.id, path: name, expectedHash: hash)])
+        #expect(fresh.completed == 1 && !env.b.exists(name))
+    }
+
     @Test func overLongDestinationNameIsAFailureNotACrash() async throws {
         let env = try Env(a: ["x.txt": "hi"])
         defer { env.remove() }

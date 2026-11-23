@@ -116,6 +116,7 @@ struct DuplicatesView: View {
                 .padding(.bottom, 70)
             }
             .overlay(alignment: .bottom) { bar(group, proposed: proposed) }
+            .disabled(model.isBusy)
         }
     }
 

@@ -62,7 +62,8 @@ public actor SyncEngine {
         if scan.indexes.contains(where: { allowEmptyRoots.contains($0.rootID) && $0.items.isEmpty }) {
             snapshot = .empty
         }
-        return Planner.plan(roots: scan.indexes, snapshot: snapshot)
+        // Anything the scan could not read (folders, files) is left out of the plan in every root.
+        return Planner.plan(roots: scan.indexes, snapshot: snapshot, skipping: scan.issues.map(\.relativePath))
     }
 
     public func duplicates(_ scan: ScanSnapshot) -> [DuplicateGroup] {
@@ -87,7 +88,7 @@ public actor SyncEngine {
     public func resolve(_ pending: PendingDeletion, as resolution: DeletionResolution) -> [SyncOperation] {
         switch resolution {
         case .propagate:
-            return pending.presentIn.map { .trash(root: $0, path: pending.path) }
+            return pending.presentIn.map { .trash(root: $0, path: pending.path, expectedHash: pending.hash) }
         case .restore:
             guard let source = pending.presentIn.first else { return [] }
             var operations: [SyncOperation] = []

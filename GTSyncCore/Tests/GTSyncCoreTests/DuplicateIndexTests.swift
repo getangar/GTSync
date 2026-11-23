@@ -84,7 +84,7 @@ import Testing
         let variants = try #require(groups(files, files).first { $0.kind == .nameVariants })
         let chosen = try #require(variants.redundant.first)
         let ops = variants.removalOperations(of: [chosen])
-        #expect(Set(ops) == [.trash(root: a, path: "r-1.pdf"), .trash(root: b, path: "r-1.pdf")])
+        #expect(Set(ops) == [.trash(root: a, path: "r-1.pdf", expectedHash: "h2"), .trash(root: b, path: "r-1.pdf", expectedHash: "h2")])
         #expect(variants.removalOperations().count == 2)
     }
 

@@ -18,7 +18,11 @@ public enum SyncOperation: Sendable, Hashable {
     case createDirectory(root: RootID, path: RelativePath)
     case copy(from: RootID, fromPath: RelativePath, to: RootID, toPath: RelativePath, reason: CopyReason)
     case rename(root: RootID, from: RelativePath, to: RelativePath)
-    case trash(root: RootID, path: RelativePath)
+    /// Atomically exchanges two existing files (used to resolve name cycles without a temp file).
+    case swap(root: RootID, a: RelativePath, b: RelativePath)
+    /// Moves a file to the Trash. When `expectedHash` is set, the Executor refuses if the file at
+    /// that path is no longer the one the user saw.
+    case trash(root: RootID, path: RelativePath, expectedHash: String? = nil)
 }
 
 public struct PendingDeletion: Sendable, Equatable, Identifiable {
@@ -45,9 +49,6 @@ public struct PlanSummary: Sendable, Equatable {
 }
 
 public struct SyncPlan: Sendable {
-    /// Prefix of the temporary names used to break rename cycles.
-    static let swapPrefix = ".gtsync-swap-"
-
     public var operations: [SyncOperation]
     public var pendingDeletions: [PendingDeletion]
 
@@ -64,7 +65,7 @@ public struct SyncPlan: Sendable {
             switch op {
             case .createDirectory: directories += 1
             case let .copy(_, _, _, _, reason): if reason == .add { adds += 1 } else { variants += 1 }
-            case let .rename(_, _, to): if !to.contains(Self.swapPrefix) { renames += 1 }
+            case .rename, .swap: renames += 1
             case .trash: break
             }
         }

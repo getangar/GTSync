@@ -17,13 +17,16 @@ actor FakeEngine: SyncRunning {
     var scanError: (any Error)?
     var plan = SyncPlan(operations: [], pendingDeletions: [])
     var blockExecution = false
+    var executeError: (any Error)?
     private(set) var executeCalls = 0
     private(set) var scanCalls = 0
 
-    func configure(scanError: (any Error)? = nil, plan: SyncPlan = SyncPlan(), blockExecution: Bool = false) {
+    func configure(scanError: (any Error)? = nil, plan: SyncPlan = SyncPlan(), blockExecution: Bool = false,
+                   executeError: (any Error)? = nil) {
         self.scanError = scanError
         self.plan = plan
         self.blockExecution = blockExecution
+        self.executeError = executeError
     }
 
     func scan() async throws -> ScanSnapshot {
@@ -35,6 +38,7 @@ actor FakeEngine: SyncRunning {
     func duplicates(_ scan: ScanSnapshot) async -> [DuplicateGroup] { [] }
     func execute(_ plan: SyncPlan, scan: ScanSnapshot, progress: @Sendable @escaping (ExecutionEvent) -> Void) async throws -> ExecutionReport {
         executeCalls += 1
+        if let executeError { throw executeError }
         if blockExecution {
             while !Task.isCancelled { try? await Task.sleep(for: .milliseconds(5)) }
             return ExecutionReport(completed: 1, failures: [], wasCancelled: true)
@@ -145,6 +149,54 @@ actor FakeEngine: SyncRunning {
         await model.syncTask?.value
         #expect(allowed == [emptyRoot])
         if case .planReady = model.phase {} else { Issue.record("phase is \(model.phase)") }
+    }
+
+    @Test func anErrorAfterTheRunStartedIsNotReportedAsNothingChanged() async throws {
+        struct Boom: Error {}
+        let engine = FakeEngine()
+        await engine.configure(executeError: Boom())
+        let (model, _, box) = try makeModel(engine: engine)
+        withExtendedLifetime(box) {}
+        model.startSync(); await model.syncTask?.value
+        model.confirmPlan(); await model.syncTask?.value
+        guard case let .failed(failure) = model.phase, case .afterRun = failure else {
+            Issue.record("phase is \(model.phase)"); return
+        }
+        #expect(model.lastScan == nil, "the old scan no longer describes the folders")
+    }
+
+    @Test func afterASyncTheListsAreRefreshedInsteadOfShowingStaleData() async throws {
+        let engine = FakeEngine()
+        let (model, id, box) = try makeModel(engine: engine)
+        withExtendedLifetime(box) {}
+        model.startSync(); await model.syncTask?.value
+        model.confirmPlan(); await model.syncTask?.value
+        #expect(model.scanSetID == nil && model.lastScan == nil, "stale scan is dropped as soon as the sync ends")
+        model.dismissSync()
+        await model.refreshTask?.value
+        #expect(model.scanSetID == id && model.lastScan != nil)
+        #expect(await engine.scanCalls == 2)
+    }
+
+    @Test func actionsAndSyncsDoNotRunAtTheSameTime() async throws {
+        let engine = FakeEngine()
+        await engine.configure(blockExecution: true)
+        let (model, _, box) = try makeModel(engine: engine)
+        withExtendedLifetime(box) {}
+        model.lastScan = ScanSnapshot(indexes: [], issues: [])
+        model.performOperations([.trash(root: RootID(), path: "x.txt")])
+        #expect(model.isBusy)
+        model.startSync()
+        model.refreshScan()
+        model.performOperations([.trash(root: RootID(), path: "y.txt")])
+        await waitUntil { model.isPerforming }
+        #expect(model.phase.isIdle, "a sync must not start while an action is running")
+        #expect(await engine.scanCalls == 0)
+        model.syncTask?.cancel()                 // lets the blocked fake execution finish
+        await model.syncTask?.value
+        await model.refreshTask?.value
+        #expect(!model.isBusy)
+        #expect(await engine.executeCalls == 1, "the second action was refused, not queued behind the first")
     }
 
     @Test func syncDoesNotStartWhileAnotherRunIsActive() async throws {

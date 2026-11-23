@@ -20,6 +20,8 @@ struct SnapshotResolver {
     private(set) var roots: [RootIndex]
     private(set) var operations: [SyncOperation] = []
     private(set) var pendingDeletions: [PendingDeletion] = []
+    /// Keys of paths held by pending deletions; the merge must not reuse these names.
+    private(set) var reservedKeys: Set<String> = []
     private let snapshot: Snapshot
     private var items: [[String: IndexedItem]] = []
 
@@ -49,6 +51,7 @@ struct SnapshotResolver {
             pendingDeletions.append(PendingDeletion(
                 path: items[holders[0]][key]!.relativePath, hash: hash,
                 deletedIn: missing.map { roots[$0].rootID }, presentIn: holders.map { roots[$0].rootID }))
+            reservedKeys.insert(key)
             for h in holders { remove(key: key, from: h) }
         }
     }

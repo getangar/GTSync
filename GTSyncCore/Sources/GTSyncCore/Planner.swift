@@ -25,10 +25,24 @@ enum PathUtil {
 /// Pure planner: roots (in priority order) plus the last snapshot -> operations.
 /// The first root keeps the base name when different contents collide on a name.
 public enum Planner {
-    public static func plan(roots: [RootIndex], snapshot: Snapshot) -> SyncPlan {
-        var resolver = SnapshotResolver(roots: roots, snapshot: snapshot)
+    /// - Parameter skipping: paths that could not be read in some root (folders or files). Everything
+    ///   under them, in every root, is left alone: unreadable is not deleted.
+    public static func plan(roots: [RootIndex], snapshot: Snapshot, skipping: [RelativePath] = []) -> SyncPlan {
+        let skipKeys = Set(skipping.map { NameKey.key(for: $0) })
+        func isSkipped(_ item: IndexedItem) -> Bool {
+            let key = NameKey.key(for: item.relativePath)
+            return skipKeys.contains { key.hasPrefix($0 + "/") || (key == $0 && item.kind != .directory) }
+        }
+        func isSkipped(_ path: RelativePath) -> Bool {
+            let key = NameKey.key(for: path)
+            return skipKeys.contains { key == $0 || key.hasPrefix($0 + "/") }
+        }
+        let visible = roots.map { RootIndex(rootID: $0.rootID, items: $0.items.filter { !isSkipped($0) }) }
+        let visibleSnapshot = Snapshot(entries: snapshot.entries.filter { !isSkipped($0.key) })
+
+        var resolver = SnapshotResolver(roots: visible, snapshot: visibleSnapshot)
         resolver.resolve()
-        var builder = PlanBuilder(roots: resolver.roots)
+        var builder = PlanBuilder(roots: resolver.roots, reserved: resolver.reservedKeys)
         builder.planDirectories()
         builder.planOpaqueItems()
         builder.planFiles()
@@ -79,8 +93,12 @@ private struct PlanBuilder {
     private var moves: [Move] = []
     private var copiesAfterRenames: [PendingCopy] = []
 
-    init(roots: [RootIndex]) {
+    /// Names that pending deletions still occupy: the merge must not hand them to anything else.
+    private let reserved: Set<String>
+
+    init(roots: [RootIndex], reserved: Set<String> = []) {
         self.roots = roots
+        self.reserved = reserved
         items = Array(repeating: [:], count: roots.count)
         dirActual = Array(repeating: [:], count: roots.count)
         var kinds: [String: Set<ItemKind>] = [:]
@@ -202,7 +220,7 @@ private struct PlanBuilder {
         var movedMembers: [Int: [String: String]] = [:]  // root -> oldPath -> newPath
         func freshIndex() -> Int {
             var n = 1
-            while used.contains(n) { n += 1 }
+            while used.contains(n) || reserved.contains(NameKey.key(for: PathUtil.join(family.dirCanonical, nameFor(n)))) { n += 1 }
             used.insert(n)
             return n
         }
@@ -259,7 +277,6 @@ private struct PlanBuilder {
     mutating func finish() -> SyncPlan {
         var ops = dirOps + copiesFirst
         var renamedTo: [String: String] = [:]     // "root|oldPath" -> newPath
-        var tmpCounter = 0
         for r in roots.indices {
             var pending = moves.filter { $0.root == r }.map { (from: $0.from, to: $0.to) }
             for m in pending { renamedTo["\(r)|\(m.from)"] = m.to }
@@ -269,12 +286,15 @@ private struct PlanBuilder {
                     let m = pending.remove(at: i)
                     ops.append(.rename(root: roots[r].rootID, from: m.from, to: m.to))
                 } else {
-                    // Rename cycle: park the first file under a temporary name.
-                    let m = pending.removeFirst()
-                    let tmp = PathUtil.join(PathUtil.dir(m.from), "\(SyncPlan.swapPrefix)\(r)-\(tmpCounter)")
-                    tmpCounter += 1
-                    ops.append(.rename(root: roots[r].rootID, from: m.from, to: tmp))
-                    pending.append((from: tmp, to: m.to))
+                    // Only cycles are left (f1 -> f2 -> ... -> fk -> f1). Exchange names atomically,
+                    // no temp file: swap(f1, f2), swap(f1, f3), ... swap(f1, fk).
+                    var cycle = [pending.removeFirst()]
+                    while let next = pending.firstIndex(where: { NameKey.key(for: $0.from) == NameKey.key(for: cycle[cycle.count - 1].to) }) {
+                        cycle.append(pending.remove(at: next))
+                    }
+                    for member in cycle.dropFirst() {
+                        ops.append(.swap(root: roots[r].rootID, a: cycle[0].from, b: member.from))
+                    }
                 }
             }
         }

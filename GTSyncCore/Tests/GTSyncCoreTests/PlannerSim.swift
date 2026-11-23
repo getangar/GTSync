@@ -69,7 +69,12 @@ struct SimFS {
             roots[r][fk] = nil
             e.path = to
             roots[r][tk] = e
-        case let .trash(rootID, path):
+        case let .swap(rootID, first, second):
+            let r = slot(rootID), fk = NameKey.key(for: first), sk = NameKey.key(for: second)
+            guard let ea = roots[r][fk], let eb = roots[r][sk] else { throw SimError(description: "swap with missing \(first) / \(second)") }
+            roots[r][fk] = Entry(path: ea.path, kind: eb.kind, hash: eb.hash)     // contents trade places, names stay
+            roots[r][sk] = Entry(path: eb.path, kind: ea.kind, hash: ea.hash)
+        case let .trash(rootID, path, _):
             let r = slot(rootID)
             guard roots[r].removeValue(forKey: NameKey.key(for: path)) != nil else { throw SimError(description: "trash missing \(path)") }
         }

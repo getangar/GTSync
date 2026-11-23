@@ -61,7 +61,7 @@ struct SetDetailView: View {
                 Button("Sync…", systemImage: "arrow.triangle.2.circlepath") { model.startSync() }
                     .buttonStyle(.glassProminent)
                     .keyboardShortcut("r")
-                    .disabled(!canSync || !model.phase.isIdle)
+                    .disabled(!canSync || model.isBusy)
                     .help(canSync ? "Scan the folders and preview what will happen" : "Sync is not available right now")
             }
         }

@@ -73,9 +73,13 @@ enum FilesViewModel {
         }
 
         var renamedKeys = Set<String>()
-        for case let .rename(_, from, to) in plan.operations {
-            renamedKeys.insert(NameKey.key(for: from))
-            renamedKeys.insert(NameKey.key(for: to))
+        for operation in plan.operations {
+            switch operation {
+            case let .rename(_, from, to), let .swap(_, from, to):
+                renamedKeys.insert(NameKey.key(for: from))
+                renamedKeys.insert(NameKey.key(for: to))
+            default: break
+            }
         }
 
         let needle = NameKey.key(for: search.trimmingCharacters(in: .whitespaces))

@@ -31,7 +31,7 @@ extension AppModel {
     func removalRequest(for group: DuplicateGroup, removing members: [DuplicateMember]) -> RemovalRequest {
         let operations = group.removalOperations(of: members)
         let lines: [String] = operations.compactMap {
-            guard case let .trash(root, path) = $0 else { return nil }
+            guard case let .trash(root, path, _) = $0 else { return nil }
             return "\(selectedSet?.roots.first { $0.id == root }?.displayName ?? "?") / \(path)"
         }
         return RemovalRequest(operations: operations, lines: lines, needsExtraConfirmation: group.kind == .nameVariants)
@@ -55,13 +55,14 @@ extension AppModel {
     func performOperations(_ operations: [SyncOperation], resolving resolved: [PendingDeletion] = []) {
         guard let (set, scan) = actionContext, !operations.isEmpty else { return }
         let engine = makeEngine(set, allowedEmptyRoots[set.id] ?? [])
+        isPerforming = true
         syncTask = Task { [weak self] in
             await self?.executeUserOperations(operations, engine: engine, setID: set.id, scan: scan, resolving: resolved)
         }
     }
 
     var actionContext: (SyncSet, ScanSnapshot)? {
-        guard phase.isIdle, let set = selectedSet, let scan = lastScan else { return nil }
+        guard !isBusy, let set = selectedSet, let scan = lastScan else { return nil }
         return (set, scan)
     }
 
@@ -86,6 +87,7 @@ extension AppModel {
         } catch {
             lastError = error.localizedDescription
         }
+        isPerforming = false
         refreshScan()
     }
 }

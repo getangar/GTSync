@@ -102,7 +102,8 @@ private struct PlanContent: View {
         case let .createDirectory(root, path): return "Create folder  \(name(root)) / \(path)"
         case let .copy(from, fromPath, to, toPath, _): return "Copy  \(name(from)) / \(fromPath)  →  \(name(to)) / \(toPath)"
         case let .rename(root, from, to): return "Rename  \(name(root)) / \(from)  →  \(to)"
-        case let .trash(root, path): return "Move to Trash  \(name(root)) / \(path)"
+        case let .swap(root, first, second): return "Swap names  \(name(root)) / \(first)  ⇄  \(second)"
+        case let .trash(root, path, _): return "Move to Trash  \(name(root)) / \(path)"
         }
     }
 }
@@ -165,9 +166,15 @@ private struct FailureContent: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        Label("Sync did not start", systemImage: "exclamationmark.octagon.fill").font(.title3.bold()).foregroundStyle(.red)
+        Label(isAfterRun ? "Sync did not finish" : "Sync did not start", systemImage: "exclamationmark.octagon.fill")
+            .font(.title3.bold()).foregroundStyle(.red)
         Text(message)
-        Text("Nothing was changed.").font(.callout).foregroundStyle(.secondary)
+        if isAfterRun {
+            Text("Some changes may already have been applied. Scan again to see the current state.")
+                .font(.callout).foregroundStyle(.secondary)
+        } else {
+            Text("Nothing was changed.").font(.callout).foregroundStyle(.secondary)
+        }
         HStack {
             Spacer()
             if case let .root(.suspiciouslyEmpty(id)) = failure {
@@ -179,6 +186,8 @@ private struct FailureContent: View {
         }
     }
 
+    private var isAfterRun: Bool { if case .afterRun = failure { true } else { false } }
+
     private var message: LocalizedStringKey {
         func name(_ id: RootID) -> String { set.roots.first { $0.id == id }?.displayName ?? "A folder" }
         switch failure {
@@ -188,6 +197,7 @@ private struct FailureContent: View {
         case let .root(.suspiciouslyEmpty(id)):
             return "\(name(id)) is empty, but it used to contain files. If its disk is not mounted, stop here. If you emptied it on purpose, or it is a new disk, you can continue."
         case let .other(text): return LocalizedStringKey(text)
+        case let .afterRun(text): return "Something went wrong while syncing: \(text)"
         }
     }
 }

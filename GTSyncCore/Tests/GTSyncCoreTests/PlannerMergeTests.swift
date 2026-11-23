@@ -102,6 +102,8 @@ import Testing
         var sim = SimFS(ids: [a, b], roots: rootsData)
         let p = plan(rootsData, ids: [a, b])
         try sim.apply(p)
+        #expect(p.operations.contains { if case .swap = $0 { true } else { false } }, "a name swap must be one atomic exchange, not a hidden temp file")
+        #expect(!p.operations.contains { if case let .rename(_, from, to) = $0 { from.contains(".gtsync") || to.contains(".gtsync") } else { false } })
         #expect(sim.fingerprint(0) == sim.fingerprint(1))
         #expect(Set(sim.roots[0].values.compactMap(\.hash)) == ["h1", "h2"])
         #expect(plan(sim.indexes().map { $0.items }, ids: [a, b]).isEmpty)

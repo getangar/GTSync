@@ -716,6 +716,16 @@
         }
       }
     },
+    "It is removed from %@. You can restore it from the Trash.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viene rimosso da %@. Puoi ripristinarlo dal Cestino."
+          }
+        }
+      }
+    },
     "Its preview and details appear here.": {
       "localizations": {
         "it": {
@@ -882,6 +892,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sposta nel Cestino…"
+          }
+        }
+      }
+    },
+    "Move “%@” to the Trash?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spostare “%@” nel Cestino?"
           }
         }
       }
@@ -1492,6 +1512,26 @@
         }
       }
     },
+    "Some changes may already have been applied. Scan again to see the current state.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alcune modifiche potrebbero essere già state applicate. Analizza di nuovo per vedere lo stato attuale."
+          }
+        }
+      }
+    },
+    "Something went wrong while syncing: %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualcosa è andato storto durante la sincronizzazione: %@"
+          }
+        }
+      }
+    },
     "Start Sync": {
       "localizations": {
         "it": {
@@ -1528,6 +1568,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Interrotta prima della fine"
+          }
+        }
+      }
+    },
+    "Sync did not finish": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sincronizzazione non è terminata"
           }
         }
       }
