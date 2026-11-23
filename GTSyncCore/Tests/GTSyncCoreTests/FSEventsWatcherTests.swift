@@ -42,8 +42,20 @@ import Testing
         defer { a.remove() }
         let roots = [Root(displayName: "A", url: a.url)]
         let stream = FSEventsWatcher(latency: 0.2).events(for: roots)
-        try await Task.sleep(for: .milliseconds(500))
+        let counter = Counter()
+        let collector = Task { for await _ in stream { counter.increment() } }
+        defer { collector.cancel() }
+        try await Task.sleep(for: .seconds(1.5))                 // let the setup noise arrive first
+        let before = counter.value
         try a.write(".gtsync-\(UUID().uuidString).tmp", "partial")
-        #expect(await firstEvent(stream, within: 2) == nil)
+        try await Task.sleep(for: .seconds(1.5))
+        #expect(counter.value == before)
     }
+}
+
+private final class Counter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+    func increment() { lock.lock(); count += 1; lock.unlock() }
+    var value: Int { lock.lock(); defer { lock.unlock() }; return count }
 }

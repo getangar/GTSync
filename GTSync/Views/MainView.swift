@@ -40,6 +40,7 @@ struct SetDetailView: View {
             case .overview: OverviewView(set: set)
             case .files: FilesView(set: set)
             case .duplicates: DuplicatesView(set: set)
+            case .space: SpaceView(set: set)
             case .review: ReviewView(set: set)
             case .history: HistoryView(setID: set.id)
             }
@@ -55,7 +56,7 @@ struct SetDetailView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(minWidth: 380)
+                .frame(minWidth: 460)
             }
             ToolbarItem(placement: .primaryAction) {
                 Button("Sync…", systemImage: "arrow.triangle.2.circlepath") { model.startSync() }
@@ -105,6 +106,7 @@ struct SetDetailView: View {
         case .overview: "Overview"
         case .files: "Files"
         case .duplicates: "Duplicates"
+        case .space: "Space"
         case .review: "Review"
         case .history: "History"
         }

@@ -18,6 +18,17 @@ enum AutomationStatus: Equatable {
 }
 
 extension AppModel {
+    /// Menu bar icon: needs attention, working, paused, or idle.
+    var menuBarSymbol: String {
+        if automationStatus.values.contains(where: { if case .attention = $0 { true } else { false } }) { return "exclamationmark.triangle" }
+        if !phase.isIdle || automationRunningSetID != nil { return "arrow.triangle.2.circlepath" }
+        if automationPaused { return "pause.circle" }
+        return "arrow.left.arrow.right.circle"
+    }
+
+    /// Changes whenever a watcher must be started, restarted or stopped.
+    var automationSignature: String { sets.map { "\($0.id)\($0.watchSignature)" }.joined(separator: ";") }
+
     /// One automatic run. It scans, plans and applies only what cannot lose anything (see
     /// `AutomationPolicy.safeOperations`); deletions stay in the review queue and a root problem
     /// skips the run instead of being forced.

@@ -29,6 +29,7 @@ struct DuplicatesView: View {
     @State private var removal: RemovalRequest?
     @State private var removalMembers: [DuplicateMember] = []
     @State private var renaming: DuplicateMember?
+    @State private var compareAsSlider = true
 
     var body: some View {
         Group {
@@ -106,6 +107,7 @@ struct DuplicatesView: View {
             let proposed = proposedMembers(group)
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
+                    if model.reclaimableBytes > 0 { ReclaimableBanner(bytes: model.reclaimableBytes) }
                     header(group)
                     ForEach(files(of: group)) { file in
                         row(file, group: group, isMain: fileKey(file.representative) == fileKey(main))
@@ -165,10 +167,35 @@ struct DuplicatesView: View {
     @ViewBuilder private func previews(_ group: DuplicateGroup, main: DuplicateMember) -> some View {
         let other = files(of: group).first { $0.id == selectedFileID }?.representative
             ?? files(of: group).map(\.representative).first { fileKey($0) != fileKey(main) }
+        let mainURL = url(of: main), otherURL = other.flatMap(url(of:))
+        if let mainURL, let otherURL, CompareSupport.isImage(mainURL), CompareSupport.isImage(otherURL) {
+            VStack(alignment: .leading, spacing: 8) {
+                Picker("Compare", selection: $compareAsSlider) {
+                    Text("Slider").tag(true)
+                    Text("Side by Side").tag(false)
+                }
+                .pickerStyle(.segmented).labelsHidden().frame(maxWidth: 220)
+                if compareAsSlider {
+                    ImageCompareView(leftURL: mainURL, rightURL: otherURL, leftTitle: "Main", rightTitle: "Selected")
+                        .frame(height: 320)
+                } else {
+                    sideBySide(main: main, other: other)
+                }
+            }
+        } else {
+            sideBySide(main: main, other: other)
+        }
+    }
+
+    private func sideBySide(main: DuplicateMember, other: DuplicateMember?) -> some View {
         HStack(spacing: 14) {
             previewCard("Main", member: main)
             if let other { previewCard("Selected", member: other) }
         }
+    }
+
+    private func url(of member: DuplicateMember) -> URL? {
+        set.roots.first { $0.id == member.rootID }?.url.appendingPathComponent(member.relativePath)
     }
 
     private func previewCard(_ title: LocalizedStringKey, member: DuplicateMember) -> some View {

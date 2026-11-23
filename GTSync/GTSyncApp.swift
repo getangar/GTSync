@@ -12,13 +12,27 @@ import SwiftUI
 @main
 struct GTSyncApp: App {
     @State private var model = AppModel.live()
+    @State private var coordinator: AutomationCoordinator?
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             MainView()
                 .environment(model)
+                .task {
+                    guard coordinator == nil else { return }
+                    let started = AutomationCoordinator(model: model)
+                    started.start()
+                    coordinator = started
+                }
+                .onChange(of: model.automationSignature) { _, _ in coordinator?.reconcile() }
         }
         .defaultSize(width: 1100, height: 700)
+
+        MenuBarExtra {
+            MenuBarContent().environment(model)
+        } label: {
+            Image(systemName: model.menuBarSymbol)
+        }
 
         Settings {
             SettingsView()

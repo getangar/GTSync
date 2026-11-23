@@ -31,8 +31,14 @@ struct OverviewView: View {
                     .frame(minHeight: 320)
                 } else {
                     roots
+                    if model.scanSetID == set.id, model.reclaimableBytes > 0 {
+                        ReclaimableBanner(bytes: model.reclaimableBytes)
+                            .onTapGesture { model.selectedTab = .duplicates }
+                    }
                     summary
                     SyncAvailabilityNote(set: set)
+                    ExclusionsSection(set: set)
+                    AutomationSection(set: set)
                     Button("Add Folder…", systemImage: "plus") { importing = true }
                         .buttonStyle(.glass)
                 }

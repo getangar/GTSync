@@ -52,6 +52,11 @@ import Testing
         }
     }
 
+    @Test func aManualRequestAlwaysRuns() {
+        #expect(AutomationPolicy.shouldRun(.off, trigger: .manual, lastRun: nil, now: now, paused: false))
+        #expect(AutomationPolicy.shouldRun(.off, trigger: .manual, lastRun: now, now: now, paused: true))
+    }
+
     @Test func intervalSecondsAreStable() {
         #expect(AutomationInterval.off.seconds == nil)
         #expect(AutomationInterval.minutes15.seconds == 900)

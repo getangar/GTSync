@@ -19,14 +19,15 @@ struct PlanSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             switch model.phase {
             case let .planReady(plan): PlanContent(set: set, plan: plan)
-            case let .running(event): RunningContent(event: event)
+            case let .running(event): SyncStageView(set: set, event: event)
             case let .finished(report): ReportContent(set: set, report: report)
             case let .failed(failure): FailureContent(set: set, failure: failure)
             case .idle, .scanning: EmptyView()
             }
         }
         .padding(24)
-        .frame(width: 560)
+        .frame(width: isRunning ? 700 : 560)
+        .animation(.smooth, value: isRunning)
         .interactiveDismissDisabled(isRunning)
     }
 
@@ -104,26 +105,6 @@ private struct PlanContent: View {
         case let .rename(root, from, to): return "Rename  \(name(root)) / \(from)  →  \(to)"
         case let .swap(root, first, second): return "Swap names  \(name(root)) / \(first)  ⇄  \(second)"
         case let .trash(root, path, _): return "Move to Trash  \(name(root)) / \(path)"
-        }
-    }
-}
-
-private struct RunningContent: View {
-    let event: ExecutionEvent?
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        Text("Syncing…").font(.title3.bold())
-        if let event {
-            ProgressView(value: Double(event.completed), total: Double(max(event.total, 1)))
-            Text("\(event.completed) of \(event.total)").font(.callout).foregroundStyle(.secondary)
-            Text(event.currentPath).font(.caption.monospaced()).lineLimit(1).truncationMode(.middle).foregroundStyle(.secondary)
-        } else {
-            ProgressView()
-        }
-        HStack {
-            Spacer()
-            Button("Cancel", role: .cancel) { model.cancelSync() }
         }
     }
 }

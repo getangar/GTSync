@@ -46,13 +46,17 @@ public struct AutomationSettings: Codable, Sendable, Equatable {
 
 public enum AutomationTrigger: Sendable {
     case change, timer, diskMounted
+    /// The user asked for it (menu bar, a button): always allowed, even while automation is paused.
+    case manual
 }
 
 public enum AutomationPolicy {
     public static func shouldRun(_ settings: AutomationSettings, trigger: AutomationTrigger,
                                  lastRun: Date?, now: Date, paused: Bool) -> Bool {
+        if trigger == .manual { return true }
         guard !paused else { return false }
         switch trigger {
+        case .manual: return true
         case .change: return settings.watchChanges
         case .diskMounted: return settings.onDiskMount
         case .timer:

@@ -12,7 +12,7 @@ import GTSyncCore
 import Observation
 
 enum SetTab: String, CaseIterable, Identifiable {
-    case overview, files, duplicates, review, history
+    case overview, files, duplicates, space, review, history
     var id: String { rawValue }
 }
 
