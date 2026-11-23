@@ -44,6 +44,10 @@ A native macOS app that keeps one or more directories in sync. Directories may b
 - The app may *recommend* removing or renaming; once the user confirms, it is applied in every folder that holds the file (removals go to the Trash). Never automatic.
 - Selecting any file (source or destination) must show a preview so the user can judge easily.
 
+## Workflow
+
+- Every new feature or change request gets its own local branch, is pushed to `origin`, and reaches `main` through a pull request (never a direct push to `main`). Remote: `https://github.com/getangar/GTSync.git`.
+
 ## Commands
 
 - Core engine tests: `swift test --package-path GTSyncCore`
