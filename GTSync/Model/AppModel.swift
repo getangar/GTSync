@@ -40,6 +40,7 @@ final class AppModel {
     var allowedEmptyRoots: [UUID: Set<RootID>] = [:]
     @ObservationIgnored var session: SyncSession?
     @ObservationIgnored var syncTask: Task<Void, Never>?
+    @ObservationIgnored var refreshTask: Task<Void, Never>?
     @ObservationIgnored var makeEngine: (SyncSet, Set<RootID>) -> any SyncRunning
 
     private let setStore: SetStore

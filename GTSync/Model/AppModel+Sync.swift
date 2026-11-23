@@ -94,7 +94,7 @@ extension AppModel {
         guard phase.isIdle, !isRefreshing, let set = selectedSet, set.roots.count >= 2 else { return }
         let engine = makeEngine(set, allowedEmptyRoots[set.id] ?? [])
         isRefreshing = true
-        Task { [weak self] in
+        refreshTask = Task { [weak self] in
             do {
                 let scan = try await engine.scan()
                 let plan = try await engine.plan(scan)

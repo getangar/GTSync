@@ -39,7 +39,7 @@ struct SetDetailView: View {
             switch model.selectedTab {
             case .overview: OverviewView(set: set)
             case .files: FilesView(set: set)
-            case .duplicates: PlaceholderTab(title: "Duplicates", symbol: "square.on.square")
+            case .duplicates: DuplicatesView(set: set)
             case .review: PlaceholderTab(title: "Review", symbol: "trash.slash")
             case .history: PlaceholderTab(title: "History", symbol: "clock")
             }
@@ -49,7 +49,9 @@ struct SetDetailView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Picker("Section", selection: $model.selectedTab) {
-                    ForEach(SetTab.allCases) { Text(title($0)).tag($0) }
+                    ForEach(SetTab.allCases) { tab in
+                        Text(label(tab)).tag(tab)
+                    }
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
@@ -86,6 +88,16 @@ struct SetDetailView: View {
     private var subtitle: String {
         let count = set.roots.count
         return count == 1 ? "1 folder" : "\(count) folders"
+    }
+
+    /// Tab title with a count where one is known (duplicate groups, pending deletions).
+    private func label(_ tab: SetTab) -> LocalizedStringKey {
+        let hasScan = model.scanSetID == set.id
+        switch tab {
+        case .duplicates where hasScan && !model.duplicateGroups.isEmpty: return "Duplicates (\(model.duplicateGroups.count))"
+        case .review where (model.pendingCounts[set.id] ?? 0) > 0: return "Review (\(model.pendingCounts[set.id] ?? 0))"
+        default: return title(tab)
+        }
     }
 
     private func title(_ tab: SetTab) -> LocalizedStringKey {
