@@ -44,11 +44,27 @@ public struct SyncSet: Identifiable, Codable, Sendable {
     public var name: String
     /// Order matters: the first root keeps the base name on name collisions.
     public var roots: [Root]
+    /// Relative paths (and everything below them) this set never touches, in any root.
+    public var excludedPaths: [RelativePath]
+    public var automation: AutomationSettings
 
-    public init(id: UUID = UUID(), name: String, roots: [Root] = []) {
+    public init(id: UUID = UUID(), name: String, roots: [Root] = [],
+                excludedPaths: [RelativePath] = [], automation: AutomationSettings = .off) {
         self.id = id
         self.name = name
         self.roots = roots
+        self.excludedPaths = excludedPaths
+        self.automation = automation
+    }
+
+    // Files written before exclusions and automation existed have neither key.
+    public init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        roots = try c.decode([Root].self, forKey: .roots)
+        excludedPaths = try c.decodeIfPresent([RelativePath].self, forKey: .excludedPaths) ?? []
+        automation = try c.decodeIfPresent(AutomationSettings.self, forKey: .automation) ?? .off
     }
 }
 

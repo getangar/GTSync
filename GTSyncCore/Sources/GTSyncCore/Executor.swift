@@ -36,11 +36,14 @@ public struct ExecutionEvent: Sendable {
     public let completed: Int
     public let total: Int
     public let currentPath: RelativePath
+    /// What was just done (or attempted).
+    public let operation: SyncOperation
 
-    public init(completed: Int, total: Int, currentPath: RelativePath) {
+    public init(completed: Int, total: Int, currentPath: RelativePath, operation: SyncOperation) {
         self.completed = completed
         self.total = total
         self.currentPath = currentPath
+        self.operation = operation
     }
 }
 
@@ -95,7 +98,7 @@ public struct Executor: Sendable {
             } catch {
                 report.failures.append(OperationFailure(operation: operation, message: error.localizedDescription))
             }
-            progress(ExecutionEvent(completed: index + 1, total: operations.count, currentPath: Self.path(of: operation)))
+            progress(ExecutionEvent(completed: index + 1, total: operations.count, currentPath: Self.path(of: operation), operation: operation))
             await Task.yield()
         }
         return report

@@ -51,7 +51,8 @@ actor FakeEngine: SyncRunning {
             while !Task.isCancelled { try? await Task.sleep(for: .milliseconds(5)) }
             return ExecutionReport(completed: 1, failures: [], wasCancelled: true)
         }
-        progress(ExecutionEvent(completed: 1, total: 1, currentPath: "x.txt"))
+        progress(ExecutionEvent(completed: 1, total: 1, currentPath: "x.txt",
+                                operation: .createDirectory(root: RootID(), path: "x.txt")))
         return ExecutionReport(completed: plan.operations.count, failures: [], wasCancelled: false)
     }
     func resolve(_ pending: PendingDeletion, as resolution: DeletionResolution) async -> [SyncOperation] { [] }

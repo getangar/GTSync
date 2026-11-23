@@ -41,13 +41,13 @@ public actor SyncEngine {
     public init(set: SyncSet, store: SnapshotStore, ignore: IgnoreRules = .standard, allowEmptyRoots: Set<RootID> = []) {
         self.set = set
         self.store = store
-        self.ignore = ignore
+        self.ignore = ignore.adding(excludedPaths: set.excludedPaths)
         self.allowEmptyRoots = allowEmptyRoots
     }
 
     /// Checks every root first (nothing is touched if one is unavailable), then scans and hashes.
     public func scan() async throws -> ScanSnapshot {
-        let snapshot = try store.load(setID: set.id)
+        let snapshot = try loadSnapshot()
         for root in set.roots {
             if let problem = RootGuard.check(root, snapshot: snapshot, currentItemCount: nil,
                                              allowEmpty: allowEmptyRoots.contains(root.id)) {
@@ -58,7 +58,7 @@ public actor SyncEngine {
     }
 
     public func plan(_ scan: ScanSnapshot) async throws -> SyncPlan {
-        var snapshot = try store.load(setID: set.id)
+        var snapshot = try loadSnapshot()
         if scan.indexes.contains(where: { allowEmptyRoots.contains($0.rootID) && $0.items.isEmpty }) {
             snapshot = .empty
         }
@@ -78,7 +78,7 @@ public actor SyncEngine {
         progress: @Sendable @escaping (ExecutionEvent) -> Void
     ) async throws -> ExecutionReport {
         let report = try await Executor(roots: set.roots).execute(plan.operations, progress: progress)
-        let old = try store.load(setID: set.id)
+        let old = try loadSnapshot()
         let indexes = plan.operations.isEmpty ? scan.indexes : try indexRoots(snapshot: old).indexes
         try store.save(Self.makeSnapshot(indexes: indexes, old: old, pending: plan.pendingDeletions), setID: set.id)
         return report
@@ -104,6 +104,14 @@ public actor SyncEngine {
     }
 
     // MARK: Helpers
+
+    /// The sync memory without anything the user excluded, so an excluded folder can never turn
+    /// into a deletion (or a ghost-mount alarm).
+    private func loadSnapshot() throws -> Snapshot {
+        let snapshot = try store.load(setID: set.id)
+        guard !set.excludedPaths.isEmpty else { return snapshot }
+        return Snapshot(entries: snapshot.entries.filter { !ignore.isExcluded(path: $0.key) })
+    }
 
     private func indexRoots(snapshot: Snapshot) throws -> ScanSnapshot {
         var indexes: [RootIndex] = []

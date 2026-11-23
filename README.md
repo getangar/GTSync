@@ -22,8 +22,12 @@ GT Sync always **merges**. Everything in every folder is preserved, and when the
 ## What you can do
 
 - **Overview:** your folders as cards, with their state and free space. Syncing is manual and always starts with a **plan preview**: what will be added, renamed or kept, before anything happens.
+- **Live sync:** while a sync runs, your folders are shown as stations; the file being processed travels from its source to its destination and a log lists every step.
+- **Exclusions:** leave folders out of a set. They are never copied and never deleted.
+- **Automatic sync:** per set, when something changes, on a schedule, or when a disk is connected. Automatic runs only add, copy and rename; deletions always wait in Review. A menu bar item shows the state and can pause everything.
+- **Space map:** a treemap of each folder, with the content that exists more than once highlighted, and a "You can free …" counter in Duplicates.
 - **Files:** every file across all folders, where it lives, and its status, with a preview in the inspector.
-- **Duplicates:** two kinds, shown separately.
+- **Duplicates:** two kinds, shown separately (images can be compared with a slider).
   - *Same content* under different names or folders.
   - *Same name, different content*: different files that collided on a name. You decide what to do (usually rename).
   

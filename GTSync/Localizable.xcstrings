@@ -14,6 +14,16 @@
         }
       }
     },
+    "%@ is empty but used to contain files. Open GT Sync to decide.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ è vuota ma conteneva dei file. Apri GT Sync per decidere."
+          }
+        }
+      }
+    },
     "%@ is empty, but it used to contain files. If its disk is not mounted, stop here. If it is a new disk, you can continue: GT Sync will copy your files into it, and nothing is deleted.": {
       "localizations": {
         "it": {
@@ -64,8 +74,68 @@
         }
       }
     },
+    "%@ · %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@, %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@"
+          }
+        }
+      }
+    },
     "%lld": {
       "shouldTranslate": false
+    },
+    "%lld changes were synced automatically.": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld change was synced automatically."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld changes were synced automatically."
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld modifica è stata sincronizzata automaticamente."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld modifiche sono state sincronizzate automaticamente."
+                }
+              }
+            }
+          }
+        }
+      }
     },
     "%lld could not be done": {
       "localizations": {
@@ -147,6 +217,16 @@
         }
       }
     },
+    "%lld files · %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld file · %2$@"
+          }
+        }
+      }
+    },
     "%lld folders": {
       "localizations": {
         "en": {
@@ -192,7 +272,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld di %2$lld"
+            "value": "%lld su %lld"
           }
         }
       }
@@ -277,12 +357,62 @@
         }
       }
     },
+    "%lld pending deletions need your decision.": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld pending deletion needs your decision."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld pending deletions need your decision."
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld cancellazione in attesa aspetta una tua decisione."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld cancellazioni in attesa aspettano una tua decisione."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "A file with that name already exists, or the name is not valid.": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Esiste già un file con questo nome, oppure il nome non è valido."
+          }
+        }
+      }
+    },
+    "A folder": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una cartella"
           }
         }
       }
@@ -367,6 +497,16 @@
         }
       }
     },
+    "Add…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi…"
+          }
+        }
+      }
+    },
     "All": {
       "localizations": {
         "it": {
@@ -397,6 +537,26 @@
         }
       }
     },
+    "Automatic runs only add, copy and rename. Deletions always wait for your decision in Review, and a folder that is missing or suspiciously empty stops the run.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le esecuzioni automatiche aggiungono, copiano e rinominano soltanto. Le cancellazioni aspettano sempre la tua decisione in Revisione, e una cartella mancante o sospettosamente vuota ferma l'esecuzione."
+          }
+        }
+      }
+    },
+    "Automatic sync": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizzazione automatica"
+          }
+        }
+      }
+    },
     "Cancel": {
       "localizations": {
         "it": {
@@ -407,12 +567,42 @@
         }
       }
     },
+    "Compare": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confronta"
+          }
+        }
+      }
+    },
+    "Content that exists more than once": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contenuto presente più volte"
+          }
+        }
+      }
+    },
     "Continue Anyway": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Continua comunque"
+          }
+        }
+      }
+    },
+    "Copied": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiato"
           }
         }
       }
@@ -446,6 +636,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Crea un set di sincronizzazione dalla barra laterale per iniziare a unire le cartelle."
+          }
+        }
+      }
+    },
+    "Created folder": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cartella creata"
           }
         }
       }
@@ -570,6 +770,46 @@
         }
       }
     },
+    "Every 15 minutes": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni 15 minuti"
+          }
+        }
+      }
+    },
+    "Every 30 minutes": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni 30 minuti"
+          }
+        }
+      }
+    },
+    "Every 6 hours": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni 6 ore"
+          }
+        }
+      }
+    },
+    "Every hour": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni ora"
+          }
+        }
+      }
+    },
     "Every sync and every change you confirm is listed here.": {
       "localizations": {
         "it": {
@@ -586,6 +826,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tutto è già sincronizzato."
+          }
+        }
+      }
+    },
+    "Everything is synced. Exclude a folder to leave it out of every folder of this set.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutto viene sincronizzato. Escludi una cartella per lasciarla fuori da ogni cartella di questo insieme."
+          }
+        }
+      }
+    },
+    "Exclude": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escludi"
+          }
+        }
+      }
+    },
+    "Exclude from sync": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escludi dalla sincronizzazione"
+          }
+        }
+      }
+    },
+    "Excluded from sync": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escluse dalla sincronizzazione"
+          }
+        }
+      }
+    },
+    "Excluded items are never copied and never deleted. They are not removed from any folder.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli elementi esclusi non vengono mai copiati né cancellati. Non vengono rimossi da nessuna cartella."
+          }
+        }
+      }
+    },
+    "File": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File"
           }
         }
       }
@@ -620,12 +920,62 @@
         }
       }
     },
+    "Folder": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cartella"
+          }
+        }
+      }
+    },
+    "Folder (click to open)": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cartella (clicca per aprirla)"
+          }
+        }
+      }
+    },
+    "Folder path, for example Photos/Raw": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Percorso della cartella, ad esempio Foto/Raw"
+          }
+        }
+      }
+    },
+    "Folders found in your last scan": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cartelle trovate nell'ultima analisi"
+          }
+        }
+      }
+    },
     "Folders to create": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Cartelle da creare"
+          }
+        }
+      }
+    },
+    "Following every step. Nothing is overwritten.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni passaggio è visibile. Nulla viene sovrascritto."
           }
         }
       }
@@ -663,6 +1013,16 @@
         }
       }
     },
+    "Held by copies that have the same content as a main file. You decide what to remove.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Occupato da copie con lo stesso contenuto di un file principale. Sei tu a decidere cosa rimuovere."
+          }
+        }
+      }
+    },
     "History": {
       "localizations": {
         "it": {
@@ -693,6 +1053,16 @@
         }
       }
     },
+    "Image comparison": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confronto tra immagini"
+          }
+        }
+      }
+    },
     "In": {
       "shouldTranslate": false
     },
@@ -702,6 +1072,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sincronizzato"
+          }
+        }
+      }
+    },
+    "Include it in the sync again": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Includila di nuovo nella sincronizzazione"
           }
         }
       }
@@ -762,6 +1142,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Conservato"
+          }
+        }
+      }
+    },
+    "Kept both": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tenuti entrambi"
+          }
+        }
+      }
+    },
+    "Last automatic run %@: %lld changes": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ultima esecuzione automatica %1$@: %2$lld modifiche"
+          }
+        }
+      }
+    },
+    "Last run %@: %lld changes": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ultima esecuzione %1$@: %2$lld modifiche"
           }
         }
       }
@@ -906,6 +1316,16 @@
         }
       }
     },
+    "Moved to Trash": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spostato nel Cestino"
+          }
+        }
+      }
+    },
     "Name": {
       "localizations": {
         "it": {
@@ -922,6 +1342,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Richiede la tua revisione"
+          }
+        }
+      }
+    },
+    "Never": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mai"
           }
         }
       }
@@ -1006,12 +1436,32 @@
         }
       }
     },
+    "No more folders to choose from.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non ci sono altre cartelle tra cui scegliere."
+          }
+        }
+      }
+    },
     "No sync set selected": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Nessun set selezionato"
+          }
+        }
+      }
+    },
+    "No sync sets yet": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ancora nessun insieme di sincronizzazione"
           }
         }
       }
@@ -1032,6 +1482,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Non ancora sincronizzati"
+          }
+        }
+      }
+    },
+    "Nothing here": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qui non c'è nulla"
           }
         }
       }
@@ -1089,6 +1549,16 @@
     "OK": {
       "shouldTranslate": false
     },
+    "Open GT Sync": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri GT Sync"
+          }
+        }
+      }
+    },
     "Open Review": {
       "localizations": {
         "it": {
@@ -1105,6 +1575,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Panoramica"
+          }
+        }
+      }
+    },
+    "Pause Automatic Sync": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metti in pausa la sincronizzazione automatica"
+          }
+        }
+      }
+    },
+    "Paused from the menu bar.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In pausa dalla barra dei menu."
           }
         }
       }
@@ -1129,12 +1619,32 @@
         }
       }
     },
+    "Progress": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avanzamento"
+          }
+        }
+      }
+    },
     "Quick Look": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Anteprima rapida"
+          }
+        }
+      }
+    },
+    "Quit GT Sync": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esci da GT Sync"
           }
         }
       }
@@ -1265,6 +1775,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rinomina…"
+          }
+        }
+      }
+    },
+    "Repeat": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripeti"
           }
         }
       }
@@ -1402,6 +1922,16 @@
         }
       }
     },
+    "Scan the folders to pick from a list.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analizza le cartelle per sceglierle da un elenco."
+          }
+        }
+      }
+    },
     "Scan the folders to see every file and where it lives.": {
       "localizations": {
         "it": {
@@ -1502,12 +2032,32 @@
         }
       }
     },
+    "Side by Side": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Affiancati"
+          }
+        }
+      }
+    },
     "Size": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Dimensione"
+          }
+        }
+      }
+    },
+    "Slider": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cursore"
           }
         }
       }
@@ -1528,6 +2078,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Qualcosa è andato storto durante la sincronizzazione: %@"
+          }
+        }
+      }
+    },
+    "Space": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spazio"
           }
         }
       }
@@ -1568,6 +2128,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Interrotta prima della fine"
+          }
+        }
+      }
+    },
+    "Swapped names": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nomi scambiati"
+          }
+        }
+      }
+    },
+    "Sync %@ Now": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizza %@ ora"
           }
         }
       }
@@ -1642,6 +2222,26 @@
         }
       }
     },
+    "Sync when a disk is connected": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizza quando si collega un disco"
+          }
+        }
+      }
+    },
+    "Sync when something changes": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizza quando qualcosa cambia"
+          }
+        }
+      }
+    },
     "Synced": {
       "localizations": {
         "it": {
@@ -1662,6 +2262,16 @@
         }
       }
     },
+    "Syncing now…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizzazione in corso…"
+          }
+        }
+      }
+    },
     "Syncing…": {
       "localizations": {
         "it": {
@@ -1678,6 +2288,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sincronizza…"
+          }
+        }
+      }
+    },
+    "The folder stays untouched in every location. Choose one to see how much it holds.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La cartella resta intatta in ogni posizione. Scegline una per vedere quanto occupa."
           }
         }
       }
@@ -1718,6 +2338,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vengono rimossi da ogni cartella che li ha ancora. Puoi ripristinarli dal Cestino."
+          }
+        }
+      }
+    },
+    "This folder is empty.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa cartella è vuota."
           }
         }
       }
@@ -1782,6 +2412,26 @@
         }
       }
     },
+    "You can free": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puoi liberare"
+          }
+        }
+      }
+    },
+    "You can free %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puoi liberare %@"
+          }
+        }
+      }
+    },
     "You can restore them from the Trash.": {
       "localizations": {
         "it": {
@@ -1828,6 +2478,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "non riusciti"
+          }
+        }
+      }
+    },
+    "of %lld": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "su %lld"
           }
         }
       }

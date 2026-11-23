@@ -39,6 +39,7 @@ extension AppModel {
     func confirmPlan() {
         guard case let .planReady(plan) = phase, let session else { return }
         phase = .running(nil)
+        recentEvents = []
         let sink: @Sendable (ExecutionEvent) -> Void = { [weak self] event in
             Task { @MainActor in self?.report(event) }
         }
@@ -128,8 +129,14 @@ extension AppModel {
         startSync()
     }
 
+    func record(event: ExecutionEvent) {
+        recentEvents = Array((recentEvents + [event]).suffix(8))
+    }
+
     private func report(_ event: ExecutionEvent) {
-        if case .running = phase { phase = .running(event) }
+        guard case .running = phase else { return }
+        phase = .running(event)
+        record(event: event)
     }
 
     private func fail(_ error: any Error) {

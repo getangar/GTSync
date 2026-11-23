@@ -57,7 +57,7 @@ public enum Scanner {
 
         var items: [ScannedItem] = []
         for case let url as URL in walker {
-            if ignore.isIgnored(name: url.lastPathComponent) {
+            if ignore.isIgnored(name: url.lastPathComponent) || ignore.isExcluded(path: relative(url)) {
                 walker.skipDescendants()
                 continue
             }

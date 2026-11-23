@@ -12,7 +12,7 @@ import GTSyncCore
 import Observation
 
 enum SetTab: String, CaseIterable, Identifiable {
-    case overview, files, duplicates, review, history
+    case overview, files, duplicates, space, review, history
     var id: String { rawValue }
 }
 
@@ -40,6 +40,16 @@ final class AppModel {
     /// A user-approved action (restore, trash, rename) is running.
     var isPerforming = false
     var allowedEmptyRoots: [UUID: Set<RootID>] = [:]
+    /// The latest operations of the running sync, oldest first (drives the live stage).
+    var recentEvents: [ExecutionEvent] = []
+
+    // Automation (see AutomationActions.swift)
+    var automationPaused = false
+    var automationStatus: [UUID: AutomationStatus] = [:]
+    var automationRunningSetID: UUID?
+    @ObservationIgnored var lastAutoRun: [UUID: Date] = [:]
+    @ObservationIgnored var deferredAutomation: [UUID: AutomationTrigger] = [:]
+    @ObservationIgnored var notifier: any UserNotifying = SystemNotifier()
     @ObservationIgnored var session: SyncSession?
     @ObservationIgnored var syncTask: Task<Void, Never>?
     @ObservationIgnored var refreshTask: Task<Void, Never>?
@@ -84,7 +94,10 @@ final class AppModel {
 
     /// True while anything that touches the folders (or rescans them) is in progress. Every entry
     /// point checks it, and the buttons are disabled meanwhile.
-    var isBusy: Bool { !phase.isIdle || isRefreshing || isPerforming }
+    var isBusy: Bool { !phase.isIdle || isRefreshing || isPerforming || automationRunningSetID != nil }
+
+    /// Space freed by removing every redundant copy found by the last scan.
+    var reclaimableBytes: Int64 { DuplicateIndex.reclaimableBytes(in: duplicateGroups) }
 
     // MARK: Sets
 
@@ -136,6 +149,30 @@ final class AppModel {
             guard let index = set.roots.firstIndex(where: { $0.id == rootID }) else { return }
             set.roots.move(fromOffsets: IndexSet(integer: index), toOffset: 0)
         }
+    }
+
+    // MARK: Exclusions and automation
+
+    /// Adds a path (and everything below it) the set never touches. Ignores empty, `..` and
+    /// duplicate paths. The old scan no longer describes what the sync will see.
+    func addExclusion(_ raw: String, to setID: UUID) {
+        let path = raw.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let parts = path.split(separator: "/", omittingEmptySubsequences: false)
+        guard !path.isEmpty, !parts.contains(where: { $0.isEmpty || $0 == "." || $0 == ".." }) else { return }
+        mutate(setID) { set in
+            guard !set.excludedPaths.contains(where: { NameKey.key(for: $0) == NameKey.key(for: path) }) else { return }
+            set.excludedPaths.append(path)
+        }
+        invalidateScan()
+    }
+
+    func removeExclusion(_ path: String, from setID: UUID) {
+        mutate(setID) { $0.excludedPaths.removeAll { $0 == path } }
+        invalidateScan()
+    }
+
+    func setAutomation(_ settings: AutomationSettings, for setID: UUID) {
+        mutate(setID) { $0.automation = settings }
     }
 
     // MARK: Status

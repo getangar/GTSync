@@ -22,6 +22,9 @@ private struct StoredSet: Codable {
     var id: UUID
     var name: String
     var roots: [StoredRoot]
+    // Absent in files written before these existed.
+    var excludedPaths: [String]?
+    var automation: AutomationSettings?
 }
 
 /// Persists sync sets as JSON. Roots are stored with a security-scoped bookmark and a plain
@@ -46,7 +49,8 @@ final class SetStore {
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return [] }
         let stored = try JSONDecoder().decode([StoredSet].self, from: Data(contentsOf: fileURL))
         return stored.map { set in
-            SyncSet(id: set.id, name: set.name, roots: set.roots.map(resolve))
+            SyncSet(id: set.id, name: set.name, roots: set.roots.map(resolve),
+                    excludedPaths: set.excludedPaths ?? [], automation: set.automation ?? .off)
         }
     }
 
@@ -58,7 +62,7 @@ final class SetStore {
                 }
                 return StoredRoot(id: root.id, displayName: root.displayName, path: root.url.path,
                                   volumeUUID: root.volumeUUID, bookmark: bookmarkCache[root.id])
-            })
+            }, excludedPaths: set.excludedPaths, automation: set.automation)
         }
         try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try JSONEncoder().encode(stored).write(to: fileURL, options: .atomic)
