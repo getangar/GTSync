@@ -1,5 +1,7 @@
 # GT Sync
 
+[![Tests](https://github.com/getangar/GTSync/actions/workflows/tests.yml/badge.svg)](https://github.com/getangar/GTSync/actions/workflows/tests.yml)
+
 (c)Copyright 2026 by Gennaro Eduardo Tangari.
 
 **GT Sync keeps two or more folders in sync on your Mac, without ever overwriting or silently deleting anything.**
@@ -70,7 +72,7 @@ Version 1 is feature complete for manual sync. Not done yet: automatic (continuo
 
 ## Contributing
 
-Each new feature is developed on its own branch and merged into `main` through a pull request.
+Each new feature is developed on its own branch and merged into `main` through a pull request. All tests (engine and app) must pass on GitHub Actions before a pull request can be merged.
 
 ## Copyright
 
