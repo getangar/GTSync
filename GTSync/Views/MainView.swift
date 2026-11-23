@@ -56,13 +56,27 @@ struct SetDetailView: View {
                 .frame(minWidth: 380)
             }
             ToolbarItem(placement: .primaryAction) {
-                Button("Sync…", systemImage: "arrow.triangle.2.circlepath") {}
+                Button("Sync…", systemImage: "arrow.triangle.2.circlepath") { model.startSync() }
                     .buttonStyle(.glassProminent)
-                    .disabled(!canSync)
+                    .keyboardShortcut("r")
+                    .disabled(!canSync || !model.phase.isIdle)
                     .help(canSync ? "Scan the folders and preview what will happen" : "Sync is not available right now")
             }
         }
         .searchable(text: $model.searchText, placement: .toolbar, prompt: "Search files")
+        .sheet(isPresented: Binding(get: { showsSheet }, set: { if !$0 { model.cancelSync() } })) {
+            PlanSheet(set: set)
+        }
+        .overlay(alignment: .top) {
+            if case .scanning = model.phase { ScanningBadge() }
+        }
+    }
+
+    private var showsSheet: Bool {
+        switch model.phase {
+        case .planReady, .running, .finished, .failed: true
+        case .idle, .scanning: false
+        }
     }
 
     private var canSync: Bool {
@@ -90,5 +104,21 @@ private struct PlaceholderTab: View {
     let symbol: String
     var body: some View {
         ContentUnavailableView(title, systemImage: symbol, description: Text("Coming soon."))
+    }
+}
+
+/// Shown while the folders are being scanned (before a plan exists).
+private struct ScanningBadge: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        HStack(spacing: 10) {
+            ProgressView().controlSize(.small)
+            Text("Scanning folders…")
+            Button("Cancel") { model.cancelSync() }.buttonStyle(.plain).foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 16).padding(.vertical, 8)
+        .glassEffect(.regular, in: .capsule)
+        .padding(.top, 12)
     }
 }

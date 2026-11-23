@@ -12,12 +12,23 @@ import Foundation
 public struct OperationFailure: Sendable {
     public let operation: SyncOperation
     public let message: String
+
+    public init(operation: SyncOperation, message: String) {
+        self.operation = operation
+        self.message = message
+    }
 }
 
 public struct ExecutionReport: Sendable {
     public var completed: Int = 0
     public var failures: [OperationFailure] = []
     public var wasCancelled = false
+
+    public init(completed: Int = 0, failures: [OperationFailure] = [], wasCancelled: Bool = false) {
+        self.completed = completed
+        self.failures = failures
+        self.wasCancelled = wasCancelled
+    }
 }
 
 public struct ExecutionEvent: Sendable {
@@ -25,6 +36,12 @@ public struct ExecutionEvent: Sendable {
     public let completed: Int
     public let total: Int
     public let currentPath: RelativePath
+
+    public init(completed: Int, total: Int, currentPath: RelativePath) {
+        self.completed = completed
+        self.total = total
+        self.currentPath = currentPath
+    }
 }
 
 private enum ExecutorError: LocalizedError {

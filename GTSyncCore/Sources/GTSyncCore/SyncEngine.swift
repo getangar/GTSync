@@ -12,6 +12,11 @@ import Foundation
 public struct ScanSnapshot: Sendable {
     public let indexes: [RootIndex]
     public let issues: [ScanIssue]
+
+    public init(indexes: [RootIndex], issues: [ScanIssue]) {
+        self.indexes = indexes
+        self.issues = issues
+    }
 }
 
 public enum SyncError: Error, Sendable, Equatable {

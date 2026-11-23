@@ -12,6 +12,11 @@ import Foundation
 public struct ScanIssue: Sendable, Equatable {
     public let relativePath: RelativePath
     public let message: String
+
+    public init(relativePath: RelativePath, message: String) {
+        self.relativePath = relativePath
+        self.message = message
+    }
 }
 
 public struct ScanResult: Sendable {

@@ -30,6 +30,15 @@ final class AppModel {
     var pendingCounts: [UUID: Int] = [:]
     var lastError: String?
 
+    // Sync flow (see AppModel+Sync.swift)
+    var phase: SyncPhase = .idle
+    var lastScan: ScanSnapshot?
+    var duplicateGroups: [DuplicateGroup] = []
+    var allowedEmptyRoots: [UUID: Set<RootID>] = [:]
+    @ObservationIgnored var session: SyncSession?
+    @ObservationIgnored var syncTask: Task<Void, Never>?
+    @ObservationIgnored var makeEngine: (SyncSet, Set<RootID>) -> any SyncRunning
+
     private let setStore: SetStore
     private let snapshotStore: SnapshotStore
     private let bookmarks = BookmarkStore()
@@ -37,6 +46,9 @@ final class AppModel {
     init(setStore: SetStore, snapshotStore: SnapshotStore) {
         self.setStore = setStore
         self.snapshotStore = snapshotStore
+        makeEngine = { set, allowEmpty in
+            SyncEngine(set: set, store: snapshotStore, allowEmptyRoots: allowEmpty)
+        }
         do {
             sets = try setStore.load()
         } catch {
